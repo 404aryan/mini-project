@@ -1,7 +1,11 @@
 'use client'
 
-import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
-import { AvatarPlayer } from '@/components/avatar/AvatarPlayer'
+import { type FormEvent, lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import { motion } from 'motion/react'
+import { usePrefersReducedMotion } from '@/lib/sign/use-reduced-motion'
+import { Dock } from '@/components/sign/dock'
+import { useSignMode } from '@/lib/sign/use-sign-mode'
+import { ScrollySignToText } from '@/components/sign/scrolly-sign-to-text'
 import {
   translateToGloss,
   translateOffline,
@@ -65,7 +69,19 @@ const features = [
 
 const quickPhrases = ['YOU', 'HOME', 'TIME', 'PERSON', 'HELLO', 'HELP', 'THANK YOU', 'YES', 'NO', 'PLEASE', 'SORRY', 'WELCOME', 'GOOD', 'BAD', 'STOP', 'WAIT', 'COME', 'GO', 'WANT', 'NEED', 'LIKE', 'KNOW', 'UNDERSTAND', 'ASK', 'DRINK', 'EAT', 'WATER', 'GIVE', 'TAKE', 'SHOW', 'LOOK', 'SEE', 'LISTEN', 'TALK', 'START', 'FINISH', 'AGAIN', 'SLEEP', 'TOILET', 'DOCTOR', 'HOSPITAL', 'PAIN', 'SCHOOL', 'CLASS', 'TEACHER', 'STUDENT', 'BOOK', 'I', 'MY', 'YOUR', 'MORNING', 'LOVE', 'MEET', 'NAME']
 
+const SignStage = lazy(() => import('@/components/sign/sign-stage').then((module) => ({ default: module.SignStage })))
+const AvatarPlayer = lazy(() => import('@/components/avatar/AvatarPlayer').then((module) => ({ default: module.AvatarPlayer })))
+
 export default function Page() {
+  const sign = useSignMode()
+  const [hasOpenedSign, setHasOpenedSign] = useState(false)
+  const [avatarVisited, setAvatarVisited] = useState(false)
+  const avatarRegionRef = useRef<HTMLDivElement>(null)
+  const reducedMotion = usePrefersReducedMotion()
+  const heroCopyItem = {
+    visible: { opacity: 1, y: 0, filter: 'blur(0px)' },
+    hidden: { opacity: 0, y: reducedMotion ? 0 : -24, filter: reducedMotion ? 'blur(0px)' : 'blur(3px)' },
+  }
   const [menuOpen, setMenuOpen] = useState(false)
   const [translation, setTranslation] = useState('YOU HOME')
   const [avatarPhrase, setAvatarPhrase] = useState('YOU HOME')
@@ -98,6 +114,30 @@ export default function Page() {
   // order even when the AI call for one chunk is slower than the next.
   const liveCommittedRef = useRef(0)
   const liveChainRef = useRef<Promise<void>>(Promise.resolve())
+
+  useEffect(() => {
+    if (!sign.active) return
+    setHasOpenedSign(true)
+    setAvatarVisited(true)
+    liveModeRef.current = false
+    setLiveMode(false)
+    recognitionRef.current?.abort()
+  }, [sign.active])
+
+  useEffect(() => {
+    const region = avatarRegionRef.current
+    if (!region) return
+    // On phones the preview starts below the hero. Load it when enough is in
+    // view to use, then retain the same instance across scrolling/mode changes.
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && entry.intersectionRatio >= .2) {
+        setAvatarVisited(true)
+        observer.disconnect()
+      }
+    }, { threshold: .2 })
+    observer.observe(region)
+    return () => observer.disconnect()
+  }, [])
 
   // Hybrid translation trigger: resolve raw input to ISL gloss (Gemini when
   // the engine toggle is "online", rule-based engine otherwise / on failure)
@@ -313,9 +353,11 @@ export default function Page() {
   }
 
   return (
-    <main className="site-shell">
+    <>
+    <a href="#top" className="site-skip-link">Skip to main content</a>
+    <main className={`site-shell has-sign-story ${sign.active ? 'sign-mode-active' : ''}`} inert={sign.active}>
       <header className="topbar">
-        <a className="brand" href="#top" aria-label="Yap and Render home">
+        <a className="brand" href="#top" aria-label="yap & render home">
           <span className="brand-mark"><img src="/yap-render-logo-mark.png" alt="" /></span>
           <span>yap &amp; render</span>
         </a>
@@ -382,20 +424,21 @@ export default function Page() {
         </section>
       </div>}
 
-      <section className={isMaximized ? 'hero section-pad is-demo-maximized' : 'hero section-pad'} id="top">
-        <div className="hero-copy reveal">
-          <p className="eyebrow"><span className="eyebrow-dot" /> Language, without limits</p>
-          <h1 className="hero-title"><span>Say it.</span><span><em>See it.</em></span><span>Share it.</span></h1>
-          <p className="hero-lede">Yap & Render translates spoken language into Indian Sign Language, so more people can be part of the conversation.</p>
-          <div className="hero-actions">
+      <section className={isMaximized ? 'hero section-pad is-demo-maximized' : 'hero section-pad'} id="top" tabIndex={-1}>
+        <motion.div className="hero-copy reveal" initial={false} animate={sign.active ? 'hidden' : 'visible'} variants={{ hidden: { transition: { staggerChildren: reducedMotion ? 0 : .04 } }, visible: { transition: { staggerChildren: reducedMotion ? 0 : .05 } } }}>
+          <motion.p variants={heroCopyItem} className="eyebrow"><span className="eyebrow-dot" /> Language, without limits</motion.p>
+          <motion.h1 variants={heroCopyItem} className="hero-title"><span>Say it.</span><span><em>See it.</em></span><span>Share it.</span></motion.h1>
+          <motion.p variants={heroCopyItem} className="hero-lede">Yap & Render translates spoken language into Indian Sign Language, so more people can be part of the conversation.</motion.p>
+          <motion.div variants={heroCopyItem} className="hero-actions">
             <a className="button button-dark" href="#try-it">See it in action <ArrowDownRight size={17} /></a>
             <a className="text-link" href="#how-it-works">Explore the idea <ArrowRight size={15} /></a>
-          </div>
-          <div className="hero-highlights" aria-label="Yap and Render highlights"><span>ISL-first</span><span>Real-time signs</span><span>Human connection</span></div>
-          <p className="hero-note"><Sparkles size={14} /> Built with and for the Indian Deaf community</p>
-        </div>
+          </motion.div>
+          <motion.div variants={heroCopyItem} className="hero-highlights" aria-label="Yap and Render highlights"><span>ISL-first</span><span>Real-time signs</span><span>Human connection</span></motion.div>
+          <motion.p variants={heroCopyItem} className="hero-note"><Sparkles size={14} /> Built with and for the Indian Deaf community</motion.p>
+        </motion.div>
 
-        <div className="avatar-stage reveal" id="try-it">
+        <motion.div layout={!reducedMotion} className={`avatar-stage reveal ${sign.active ? 'sign-avatar-pip' : ''}`} id="try-it" transition={{ type: 'spring', stiffness: 170, damping: 25 }}>
+          {sign.active && <span className="sign-pip-label">Render <span>Still here with you</span></span>}
           <div className="terminal-window" aria-label="Yap and Render live translation workspace">
             <div className="terminal-chrome"><span className="chrome-dot red" /><span className="chrome-dot yellow" /><span className="chrome-dot green" /><span className="terminal-title">yap / render</span><button
               type="button"
@@ -410,13 +453,14 @@ export default function Page() {
             <div className={isMaximized ? 'terminal-body avatar-terminal-body is-maximized' : 'terminal-body avatar-terminal-body'}>
               <div className="avatar-workspace">
               <div
+                ref={avatarRegionRef}
                 className={isMaximized ? 'avatar-canvas-shell is-maximized' : 'avatar-canvas-shell'}
                 aria-label="Interactive 3D avatar canvas ready for Indian Sign Language playback"
                 onTransitionEnd={(event) => {
                   if (event.propertyName === 'height') window.dispatchEvent(new Event('resize'))
                 }}
               >
-                <AvatarPlayer phrase={avatarPhrase} requestId={requestId} model={avatarModel} appendToQueue={liveMode} stopId={stopId} resetId={resetId} speed={speed} onStateChange={setAvatarState} />
+                {avatarVisited ? <Suspense fallback={<div className="avatar-load-placeholder" role="status">Loading Render…</div>}><AvatarPlayer phrase={avatarPhrase} requestId={requestId} model={avatarModel} appendToQueue={liveMode} stopId={stopId} resetId={resetId} speed={speed} lowPower={sign.active} onStateChange={setAvatarState} /></Suspense> : <div className="avatar-load-placeholder" aria-hidden="true"><Hand size={30} strokeWidth={1.2} /></div>}
                 <span className="canvas-badge"><span className="live-dot" /> ISL AVATAR · {avatarState}</span>
                 <div className={isTranslating ? 'engine-selector is-busy' : 'engine-selector'} role="group" aria-label="Translation engine">
                   <button type="button" className={translationEngine === 'online' ? 'is-selected' : ''} onClick={() => chooseTranslationEngine('online')} aria-pressed={translationEngine === 'online'} title="Translate with Gemini AI (falls back to the offline engine automatically)"><Sparkles size={10} /> AI</button>
@@ -456,7 +500,7 @@ export default function Page() {
               <div className="terminal-footer"><span className="terminal-play">{avatarState === 'signing' ? <Square size={11} fill="currentColor" /> : <Play size={14} fill="currentColor" />}</span><span>{avatarState === 'signing' ? 'translation in progress' : avatarState === 'loading' ? 'loading avatar' : 'ready — words or A–Z fingerspelling'}</span><span className="terminal-time">ISL</span></div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       <section className="marquee-band" aria-label="Product promise"><div>VOICE <span>→</span> SIGN <span>→</span> UNDERSTANDING <span>→</span> BELONGING <span>→</span> VOICE <span>→</span> SIGN</div></section>
@@ -465,6 +509,8 @@ export default function Page() {
         <div className="section-kicker">The simple idea</div>
         <div className="intro-content"><h2>Communication should never need a <em>middle ground.</em></h2><div><p>Most translation tools move between languages. We are building a bridge between ways of communicating.</p><a className="text-link" href="#why-it-matters">Why we&apos;re building this <ArrowRight size={15} /></a></div></div>
       </section>
+
+      <ScrollySignToText onTry={sign.open} />
 
       <section className="feature-section section-pad" id="why-it-matters">
         <div className="feature-heading reveal"><p className="eyebrow"><span className="eyebrow-dot" /> From yap to render</p><h2>One conversation.<br /><em>Two ways to be heard.</em></h2></div>
@@ -475,7 +521,15 @@ export default function Page() {
 
       <section className="final-cta section-pad reveal" id="about"><div className="cta-symbol"><AudioLines size={28} /></div><p className="eyebrow">A more connected future</p><h2>Let&apos;s make room<br />for <em>every voice.</em></h2><p>We&apos;re early, curious, and building in the open.</p><button type="button" className="button button-coral" onClick={() => setAboutOpen(true)}>About Us <ArrowRight size={17} /></button></section>
 
-      <footer className="footer"><a className="brand" href="#top" aria-label="Yap and Render home"><span className="brand-mark"><img src="/yap-render-logo-mark.png" alt="" /></span><span>yap &amp; render</span></a><span>Made for more ways to connect.</span><span>© 2026 Yap & Render</span></footer>
+      <footer className="footer"><a className="brand" href="#top" aria-label="yap & render home"><span className="brand-mark"><img src="/yap-render-logo-mark.png" alt="" /></span><span>yap &amp; render</span></a><span>Made for more ways to connect.</span><span>© 2026 Yap & Render</span></footer>
     </main>
+    <div className={sign.active ? 'sign-dialog-root' : undefined} role={sign.active ? 'dialog' : undefined} aria-modal={sign.active ? true : undefined} aria-labelledby={sign.active ? 'sign-stage-title' : undefined}>
+      {!sign.active && !hasOpenedSign && <div id="sign-stage" hidden />}
+      {(sign.active || hasOpenedSign) && <Suspense fallback={<section id="sign-stage" className="sign-stage sign-stage-loading" aria-hidden={!sign.active} inert={!sign.active} style={{ opacity: sign.active ? 1 : 0, pointerEvents: sign.active ? 'auto' : 'none' }}>
+        <div className="sign-loading-card"><h2 id="sign-stage-title" className="sign-sr-only">You Sign. We Speak.</h2><p role="status">Opening your signing space…</p><button type="button" autoFocus className="sign-stage-close" aria-label="Close Sign to Text" onClick={() => sign.close()}><X size={20} /></button></div>
+      </section>}><SignStage active={sign.active} status={sign.status} origin={sign.origin} attachVideo={sign.attachVideo} onAccept={sign.acceptPrivacy} onRetry={sign.requestCamera} onClose={sign.close} /></Suspense>}
+      <Dock signActive={sign.active} cameraLive={sign.status === 'live'} onSign={sign.open} onExit={sign.close} />
+    </div>
+    </>
   )
 }

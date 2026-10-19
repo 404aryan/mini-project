@@ -35,19 +35,23 @@ type AvatarPlayerProps = {
   stopId?: number
   resetId?: number
   speed?: number
+  lowPower?: boolean
   onStateChange: (state: 'loading' | 'ready' | 'signing') => void
 }
 
 const wordAnimations = words as unknown as Record<string, (runtime: SignRuntime) => void>
 const alphabetAnimations = alphabets as unknown as Record<string, (runtime: SignRuntime) => void>
 
-export function AvatarPlayer({ phrase, requestId, model = 'default', appendToQueue = false, stopId = 0, resetId = 0, speed = 1, onStateChange }: AvatarPlayerProps) {
+export function AvatarPlayer({ phrase, requestId, model = 'default', appendToQueue = false, stopId = 0, resetId = 0, speed = 1, lowPower = false, onStateChange }: AvatarPlayerProps) {
   const mountRef = useRef<HTMLDivElement>(null)
   const runtimeRef = useRef<SignRuntime>({ animations: [], characters: [], pending: true })
   const readyRef = useRef(false)
   const pendingPhraseRef = useRef<{ phrase: string; requestId: number } | null>(null)
   const appendToQueueRef = useRef(appendToQueue)
   const speedRef = useRef(speed)
+  const lowPowerRef = useRef(lowPower)
+  const needsRenderRef = useRef(true)
+  useEffect(() => { lowPowerRef.current = lowPower }, [lowPower])
 
   useEffect(() => {
     appendToQueueRef.current = appendToQueue
@@ -66,6 +70,7 @@ export function AvatarPlayer({ phrase, requestId, model = 'default', appendToQue
       return
     }
     enqueuePhrase(next.phrase, runtimeRef.current, appendToQueue)
+    needsRenderRef.current = true
     onStateChange('signing')
   }, [phrase, requestId, onStateChange])
 
@@ -80,6 +85,7 @@ export function AvatarPlayer({ phrase, requestId, model = 'default', appendToQue
     if (!resetId || !readyRef.current) return
     pendingPhraseRef.current = null
     resetAvatar(runtimeRef.current, model)
+    needsRenderRef.current = true
     onStateChange('ready')
   }, [resetId, model, onStateChange])
 
@@ -94,6 +100,7 @@ export function AvatarPlayer({ phrase, requestId, model = 'default', appendToQue
     runtime.avatar = undefined
     runtime.model = model
     readyRef.current = false
+    needsRenderRef.current = true
     // Changing the avatar must not silently discard the phrase that is
     // already on screen. The old Human branch loaded correctly, but it did
     // not replay the current request after the new GLB finished loading.
@@ -128,6 +135,7 @@ export function AvatarPlayer({ phrase, requestId, model = 'default', appendToQue
       camera.aspect = width / height
       camera.updateProjectionMatrix()
       renderer.setSize(width, height, false)
+      needsRenderRef.current = true
     }
     const resizeObserver = new ResizeObserver(resize)
     resizeObserver.observe(mount)
@@ -169,6 +177,7 @@ export function AvatarPlayer({ phrase, requestId, model = 'default', appendToQue
       // instance starts clean. Keeping those instructions in the frame queue
       // allowed a switch or reset to display an intermediate bone position.
       resetAvatar(runtime, model)
+      needsRenderRef.current = true
       readyRef.current = true
       const queuedRequest = pendingPhraseRef.current
       if (queuedRequest) {
@@ -183,8 +192,23 @@ export function AvatarPlayer({ phrase, requestId, model = 'default', appendToQue
     let animationFrame = 0
     let nextFrameAt = 0
     let wasSigning = false
+    let lastRender = 0
+    let powerSaving = false
     const animate = (now: number) => {
       animationFrame = requestAnimationFrame(animate)
+      if (document.hidden) return
+      if (powerSaving !== lowPowerRef.current) {
+        powerSaving = lowPowerRef.current
+        renderer.setPixelRatio(powerSaving ? 1 : Math.min(window.devicePixelRatio, 2))
+        renderer.shadowMap.enabled = !powerSaving
+        resize()
+      }
+      // A resting rig needs no repeated WebGL draws. Resize, loading, reset,
+      // and queued signs invalidate it without unmounting or reloading the GLB.
+      if (!runtime.animations.length && !wasSigning && !needsRenderRef.current) return
+      // Keep the rig and GLB alive, but give camera inference the GPU budget.
+      if (powerSaving && now - lastRender < 1000 / 12) return
+      lastRender = now
       const queue = runtime.animations
       if (runtime.avatar && queue.length && now >= nextFrameAt) {
         wasSigning = true
@@ -230,6 +254,7 @@ export function AvatarPlayer({ phrase, requestId, model = 'default', appendToQue
         onStateChange('ready')
       }
       renderer.render(scene, camera)
+      needsRenderRef.current = false
     }
     animationFrame = requestAnimationFrame(animate)
 
@@ -243,7 +268,7 @@ export function AvatarPlayer({ phrase, requestId, model = 'default', appendToQue
     }
   }, [model, onStateChange])
 
-  return <div ref={mountRef} className="avatar-canvas" aria-label="Animated Indian Sign Language avatar" />
+  return <div ref={mountRef} className="avatar-canvas" role="img" aria-label="Animated Indian Sign Language avatar" />
 }
 
 // Applies colour only to the existing skinned robot mesh. No vertices, bones,

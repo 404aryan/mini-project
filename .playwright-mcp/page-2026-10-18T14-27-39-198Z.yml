@@ -1,0 +1,208 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - link "Yap and Render home" [ref=e4] [cursor=pointer]:
+        - /url: "#top"
+        - generic [ref=e6]: yap & render
+      - navigation "Main navigation" [ref=e7]:
+        - link "How it works" [ref=e8] [cursor=pointer]:
+          - /url: "#how-it-works"
+        - link "Why it matters" [ref=e9] [cursor=pointer]:
+          - /url: "#why-it-matters"
+        - link "About" [ref=e10] [cursor=pointer]:
+          - /url: "#about"
+      - generic [ref=e11]:
+        - button "Sign in" [ref=e12] [cursor=pointer]
+        - button "Sign up" [ref=e13]
+    - generic [ref=e17]:
+      - generic [ref=e18]:
+        - paragraph [ref=e19]: Language, without limits
+        - heading "Say it. See it. Share it." [level=1] [ref=e21]:
+          - generic [ref=e22]: Say it.
+          - emphasis [ref=e24]: See it.
+          - generic [ref=e25]: Share it.
+        - paragraph [ref=e26]: Yap & Render translates spoken language into Indian Sign Language, so more people can be part of the conversation.
+        - generic [ref=e27]:
+          - link "See it in action" [ref=e28] [cursor=pointer]:
+            - /url: "#try-it"
+          - link "Explore the idea" [ref=e32] [cursor=pointer]:
+            - /url: "#how-it-works"
+        - generic "Yap and Render highlights" [ref=e35]:
+          - generic [ref=e36]: ISL-first
+          - generic [ref=e37]: Real-time signs
+          - generic [ref=e38]: Human connection
+        - paragraph [ref=e39]: Built with and for the Indian Deaf community
+      - generic "Yap and Render live translation workspace" [ref=e44]:
+        - generic [ref=e45]:
+          - generic [ref=e49]: yap / render
+          - button "Maximize avatar canvas" [ref=e50] [cursor=pointer]
+        - generic [ref=e56]:
+          - generic "Interactive 3D avatar canvas ready for Indian Sign Language playback" [ref=e58]:
+            - generic "Animated Indian Sign Language avatar" [ref=e59]
+            - generic [ref=e60]: ISL AVATAR · loading
+            - group "Translation engine" [ref=e62]:
+              - button "AI" [pressed] [ref=e63] [cursor=pointer]
+              - button "Offline" [ref=e67] [cursor=pointer]
+              - generic [ref=e68]: online
+            - group "Choose avatar" [ref=e69]:
+              - generic [ref=e70]: AVATAR
+              - button "Default" [pressed] [ref=e71] [cursor=pointer]
+              - button "Human" [ref=e72] [cursor=pointer]
+          - generic [ref=e73]:
+            - textbox "Text to translate into Indian Sign Language" [ref=e74]:
+              - /placeholder: Type a message…
+              - text: YOU HOME
+            - button "Start voice input" [disabled] [ref=e75]:
+              - generic [ref=e79]: Voice
+            - button "Live" [disabled] [ref=e80]
+          - generic [ref=e82]:
+            - button "Stop translation" [ref=e83] [cursor=pointer]
+            - button "Reset avatar" [ref=e86] [cursor=pointer]: ↺
+            - generic [ref=e87]: loading avatar
+            - generic "Animation speed" [ref=e88]:
+              - text: Speed
+              - slider "Speed 1×" [ref=e89]: "1"
+              - text: 1×
+            - generic [ref=e90]: ISL
+          - generic "Try a supported sign" [ref=e91]:
+            - button "Show previous signs" [ref=e92] [cursor=pointer]
+            - generic [ref=e95]:
+              - button "YOU" [ref=e96] [cursor=pointer]
+              - button "HOME" [ref=e97] [cursor=pointer]
+              - button "TIME" [ref=e98] [cursor=pointer]
+              - button "PERSON" [ref=e99] [cursor=pointer]
+              - button "HELLO" [ref=e100] [cursor=pointer]
+              - button "HELP" [ref=e101] [cursor=pointer]
+              - button "THANK YOU" [ref=e102] [cursor=pointer]
+              - button "YES" [ref=e103] [cursor=pointer]
+              - button "NO" [ref=e104] [cursor=pointer]
+              - button "PLEASE" [ref=e105] [cursor=pointer]
+              - button "SORRY" [ref=e106] [cursor=pointer]
+              - button "WELCOME" [ref=e107] [cursor=pointer]
+              - button "GOOD" [ref=e108] [cursor=pointer]
+              - button "BAD" [ref=e109] [cursor=pointer]
+              - button "STOP" [ref=e110] [cursor=pointer]
+              - button "WAIT" [ref=e111] [cursor=pointer]
+              - button "COME" [ref=e112] [cursor=pointer]
+              - button "GO" [ref=e113] [cursor=pointer]
+              - button "WANT" [ref=e114] [cursor=pointer]
+              - button "NEED" [ref=e115] [cursor=pointer]
+              - button "LIKE" [ref=e116] [cursor=pointer]
+              - button "KNOW" [ref=e117] [cursor=pointer]
+              - button "UNDERSTAND" [ref=e118] [cursor=pointer]
+              - button "ASK" [ref=e119] [cursor=pointer]
+              - button "DRINK" [ref=e120] [cursor=pointer]
+              - button "EAT" [ref=e121] [cursor=pointer]
+              - button "WATER" [ref=e122] [cursor=pointer]
+              - button "GIVE" [ref=e123] [cursor=pointer]
+              - button "TAKE" [ref=e124] [cursor=pointer]
+              - button "SHOW" [ref=e125] [cursor=pointer]
+              - button "LOOK" [ref=e126] [cursor=pointer]
+              - button "SEE" [ref=e127] [cursor=pointer]
+              - button "LISTEN" [ref=e128] [cursor=pointer]
+              - button "TALK" [ref=e129] [cursor=pointer]
+              - button "START" [ref=e130] [cursor=pointer]
+              - button "FINISH" [ref=e131] [cursor=pointer]
+              - button "AGAIN" [ref=e132] [cursor=pointer]
+              - button "SLEEP" [ref=e133] [cursor=pointer]
+              - button "TOILET" [ref=e134] [cursor=pointer]
+              - button "DOCTOR" [ref=e135] [cursor=pointer]
+              - button "HOSPITAL" [ref=e136] [cursor=pointer]
+              - button "PAIN" [ref=e137] [cursor=pointer]
+              - button "SCHOOL" [ref=e138] [cursor=pointer]
+              - button "CLASS" [ref=e139] [cursor=pointer]
+              - button "TEACHER" [ref=e140] [cursor=pointer]
+              - button "STUDENT" [ref=e141] [cursor=pointer]
+              - button "BOOK" [ref=e142] [cursor=pointer]
+              - button "I" [ref=e143] [cursor=pointer]
+              - button "MY" [ref=e144] [cursor=pointer]
+              - button "YOUR" [ref=e145] [cursor=pointer]
+              - button "MORNING" [ref=e146] [cursor=pointer]
+              - button "LOVE" [ref=e147] [cursor=pointer]
+              - button "MEET" [ref=e148] [cursor=pointer]
+              - button "NAME" [ref=e149] [cursor=pointer]
+            - button "Show more signs" [ref=e150] [cursor=pointer]
+    - region "Product promise" [ref=e153]:
+      - generic [ref=e154]: VOICE → SIGN → UNDERSTANDING → BELONGING → VOICE → SIGN
+    - generic [ref=e155]:
+      - generic [ref=e156]: The simple idea
+      - generic [ref=e157]:
+        - heading [level=2] [ref=e158]:
+          - text: Communication should never need a
+          - emphasis [ref=e159]: middle ground.
+        - generic [ref=e160]:
+          - paragraph [ref=e161]: Most translation tools move between languages. We are building a bridge between ways of communicating.
+          - link "Why we're building this" [ref=e162] [cursor=pointer]:
+            - /url: "#why-it-matters"
+    - generic [ref=e165]:
+      - generic [ref=e166]:
+        - paragraph [ref=e167]: From yap to render
+        - heading [level=2] [ref=e169]:
+          - text: One conversation.
+          - emphasis [ref=e170]: Two ways to be heard.
+      - generic [ref=e171]:
+        - article [ref=e172]:
+          - generic [ref=e173]: "01"
+          - heading "Speak naturally" [level=3] [ref=e178]
+          - paragraph [ref=e179]: Yap captures the rhythm, intent, and nuance of everyday speech.
+        - article [ref=e180]:
+          - generic [ref=e181]: "02"
+          - heading "See every sign" [level=3] [ref=e188]
+          - paragraph [ref=e189]: Render turns language into expressive Indian Sign Language in real time.
+        - article [ref=e190]:
+          - generic [ref=e191]: "03"
+          - heading "Reach more people" [level=3] [ref=e198]
+          - paragraph [ref=e199]: Make classrooms, clinics, and conversations feel open to everyone.
+    - generic [ref=e200]:
+      - generic [ref=e201]:
+        - strong [ref=e202]: "01"
+        - generic [ref=e203]: shared language
+      - generic [ref=e204]:
+        - strong [ref=e205]: ∞
+        - generic [ref=e206]: possibilities to connect
+      - generic [ref=e207]:
+        - strong [ref=e208]: 100%
+        - generic [ref=e209]: human at the centre
+    - generic [ref=e210]:
+      - paragraph [ref=e219]: A more connected future
+      - heading [level=2] [ref=e220]:
+        - text: Let's make roomfor
+        - emphasis [ref=e221]: every voice.
+      - paragraph [ref=e222]: We're early, curious, and building in the open.
+      - button "About Us" [ref=e223]
+    - generic [ref=e226]:
+      - link "Yap and Render home" [ref=e227] [cursor=pointer]:
+        - /url: "#top"
+        - generic [ref=e229]: yap & render
+      - generic [ref=e230]: Made for more ways to connect.
+      - generic [ref=e231]: © 2026 Yap & Render
+  - dialog [aria-hidden]:
+    - banner:
+      - link:
+        - /url: "#top"
+        - text: yap & render
+      - generic: Beta · Camera preview
+      - button
+    - generic:
+      - paragraph: The other side of the conversation
+      - heading [level=2]:
+        - text: You Sign.
+        - emphasis: We Speak.
+      - paragraph: A little movement. A whole new way to be heard.
+    - generic:
+      - status:
+        - generic: Loading hand model…
+      - generic:
+        - heading [level=3]: Your hands have a voice.
+        - paragraph: Start your camera when you’re ready. Keep both hands in view, with a little room to move.
+        - button: Open my camera
+      - generic [aria-hidden]: 01 / YOUR SIDE
+    - generic:
+      - generic: Private by design · video stays on your device
+      - generic: Preview only · recognition coming in Phase 2
+  - navigation "Translation modes" [ref=e232]:
+    - button "Home" [ref=e233] [cursor=pointer]
+    - button "Speak → Sign" [ref=e241] [cursor=pointer]
+    - button "Sign → Text" [ref=e246] [cursor=pointer]
+    - button "How it works" [ref=e255] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=e268] [cursor=pointer]

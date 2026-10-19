@@ -1,5 +1,8 @@
 # Avatar attribution
 
+For bundled sign-recognition dataset sources, licenses, preparation and
+evaluation results, see [SIGN-DATA.md](SIGN-DATA.md).
+
 `ybot.glb` is the "Y Bot" rig from [Adobe Mixamo](https://www.mixamo.com/),
 used under the Mixamo license (free for commercial and non-commercial use).
 

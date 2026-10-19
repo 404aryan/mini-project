@@ -1,0 +1,305 @@
+{
+  "source": "https://huggingface.co/datasets/ISL500/ISL-DATA",
+  "samples": [
+    {
+      "id": "isl500-Hello-0",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER001/Hello__session101__clip021.h5",
+      "sha256": "7dc8739860925ab443a8d43f9e2982d9bc11aa0dbe2f46decfab3fc9955707a4"
+    },
+    {
+      "id": "isl500-Hello-1",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER002/Hello__session120__clip017.h5",
+      "sha256": "cdb05272c1a56640a8f8ebd9759af665c086cd73dd35b1a62b334d71ccbdff95"
+    },
+    {
+      "id": "isl500-Hello-2",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER003/Hello__session176__clip013.h5",
+      "sha256": "1d54f611fcd2030f7c6b4bdf9d6adcf7527a6d28c0d1d10e283d48d34426cbcd"
+    },
+    {
+      "id": "isl500-Hello-3",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER001/Hello__session148__clip018.h5",
+      "sha256": "914a70a5f63a4d89f31cc696888a8152e088aa4fae956b5631a45f44fe774677"
+    },
+    {
+      "id": "isl500-Hello-4",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER002/Hello__session178__clip003.h5",
+      "sha256": "668f7e59cb5063a77bcf9424cafe5da74207a95b0bad115d31814e2790ce1487"
+    },
+    {
+      "id": "isl500-Thankyou-0",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER001/Thankyou__session122__clip016.h5",
+      "sha256": "d08dac3283e439039a537f5fd0918906dbbcc89d335fc5b59eb7a2b174180b67"
+    },
+    {
+      "id": "isl500-Thankyou-1",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER002/Thankyou__session141__clip031.h5",
+      "sha256": "1dbbb2f7234059984a2365f62505822d81e2893a50d89a778f183bca9b199959"
+    },
+    {
+      "id": "isl500-Thankyou-2",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER001/Thankyou__session186__clip006.h5",
+      "sha256": "049185a7b4ad079d86f5b006fd1d82bb630c4c51006ee37f2c692389e7fb9e4e"
+    },
+    {
+      "id": "isl500-Thankyou-3",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER001/Thankyou__session19__clip002.h5",
+      "sha256": "d83c5f75df356a37b6c6b2146a170bf0ab1b88d1ea4b429620b5e6547c59b966"
+    },
+    {
+      "id": "isl500-Thankyou-4",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER002/Thankyou__session19__clip002.h5",
+      "sha256": "6688a4dc45023e703205710b2981b69fdb7ef2d038da33b05e0b54dde9a6cddb"
+    },
+    {
+      "id": "isl500-Please-0",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER001/Please__session104__clip016.h5",
+      "sha256": "85eed7bf12b3795104dd52229394dfe807325806c773d9d5a9c60a3ab3034c9c"
+    },
+    {
+      "id": "isl500-Please-1",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER003/Please__session111__clip009.h5",
+      "sha256": "1e9db13cdbc60e73e05e353895213f74caa34e7fb730f3c90677cd6e1f9dc94d"
+    },
+    {
+      "id": "isl500-Please-2",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER001/Please__session115__clip020.h5",
+      "sha256": "14ebec8af680edb70e5eac8744a6140c19f5f4ed59a6b3b00db41d3fd798785e"
+    },
+    {
+      "id": "isl500-Please-3",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER003/Please__session174__clip006.h5",
+      "sha256": "eadaa3245f5bb28a45f1cfb18e269e2ad4ed2d133290bc1372e2525091de24c4"
+    },
+    {
+      "id": "isl500-Please-4",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER003/Please__session17__clip000.h5",
+      "sha256": "31e4dd7cb080ae0762d7702df6ed69687ea4620a01fbca9590653a77fcbc1130"
+    },
+    {
+      "id": "isl500-Water-0",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER001/Water__session117__clip006.h5",
+      "sha256": "f8785d144a74f6a3c8dc19d4eca887f9cb93e0510c98a12a74ac50b1520652f9"
+    },
+    {
+      "id": "isl500-Water-1",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER002/Water__session105__clip027.h5",
+      "sha256": "37423d0514c98ca23a6c6a3c65e9227d3dd0720f57905cfd14e6f86441d81c37"
+    },
+    {
+      "id": "isl500-Water-2",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER003/Water__session102__clip018.h5",
+      "sha256": "4969544a342e84eed4bc8753ce2a9fd4883b01d37cca2754194a44385ed95c02"
+    },
+    {
+      "id": "isl500-Water-3",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER001/Water__session136__clip016.h5",
+      "sha256": "74f7d935e8ee57d04c2b5cbcd8a5d2787fdd78fab0f32bfe5d69c23228115c5a"
+    },
+    {
+      "id": "isl500-Water-4",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER002/Water__session140__clip009.h5",
+      "sha256": "133199fc903e00685dbe408d67337a3ce6ff42ab74838672a0e03bfca0aaee03"
+    },
+    {
+      "id": "isl500-Yes-0",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER001/Yes__session105__clip014.h5",
+      "sha256": "6baac58fd080f0e8d43cf02e8ca64a1ff9a202a6fc9322444741c237de2e08ca"
+    },
+    {
+      "id": "isl500-Yes-1",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER002/Yes__session129__clip002.h5",
+      "sha256": "c8772a732868c37ab0399a23d0c95bee070f8a42142b3c97f91ce4dc42deca3f"
+    },
+    {
+      "id": "isl500-Yes-2",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER003/Yes__session114__clip001.h5",
+      "sha256": "922ef00061b7eb2792e555d085213cb33088dd30849cb3fd979e43164700fc86"
+    },
+    {
+      "id": "isl500-Yes-3",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER001/Yes__session115__clip006.h5",
+      "sha256": "56144d1f48180c40aebf584c5f60e9b1915bf2e68afa81fa9f5ae07a5429ffc7"
+    },
+    {
+      "id": "isl500-Yes-4",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER002/Yes__session140__clip009.h5",
+      "sha256": "11a85b651cedff338f25e9db155119f1d0a7eaa418f9fb9e973ad2992ac2d20b"
+    },
+    {
+      "id": "isl500-No-0",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER001/No__session104__clip019.h5",
+      "sha256": "9fb75cea8f62b61b75b8fdc7e33336251eff03c71c96b7d6d93077c206a8a68b"
+    },
+    {
+      "id": "isl500-No-1",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER002/No__session115__clip002.h5",
+      "sha256": "31c767ff126fc14ac548baff4e82024638b632e6848b6f3e13e745416f3ad754"
+    },
+    {
+      "id": "isl500-No-2",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER003/No__session107__clip008.h5",
+      "sha256": "fb5e407b8643ca2019780375ea52e81e4b149e500a6a58a391b495ba4f33322a"
+    },
+    {
+      "id": "isl500-No-3",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER003/No__session15__clip026.h5",
+      "sha256": "a23bf890b60495ea3cb355c39fee515969a83a66518e35637015caa5cb684583"
+    },
+    {
+      "id": "isl500-No-4",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER001/No__session146__clip009.h5",
+      "sha256": "adbbe94728e93db7363568d2df846f11991c424cfdac4dc0d650a3d4cb523ab1"
+    },
+    {
+      "id": "isl500-Good-0",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER001/Good__session100__clip011.h5",
+      "sha256": "d90abe292e1db5c7bda7c0e4a7e47a864b001d796829892f3a9c7ee527918c31"
+    },
+    {
+      "id": "isl500-Good-1",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER002/Good__session123__clip000.h5",
+      "sha256": "97fbe38990f7b6a580f7c6827352323fa075a737381c51f00ad8967442c684d1"
+    },
+    {
+      "id": "isl500-Good-2",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER003/Good__session101__clip009.h5",
+      "sha256": "a55bb0fe6a5febb25e97339df691eaf063313c99cecc346a48a67dea5ba362af"
+    },
+    {
+      "id": "isl500-Good-3",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER001/Good__session117__clip005.h5",
+      "sha256": "91ddad61d5ad340f153b61aa0be7cb60593e77606f6b526eac6915e35a31cf71"
+    },
+    {
+      "id": "isl500-Good-4",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER002/Good__session131__clip015.h5",
+      "sha256": "c73e454d05b13e7aee7a4802d192690417f74bfeee7a7dfbaf24cf1d2be0d671"
+    },
+    {
+      "id": "isl500-Wait-0",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER001/Wait__session100__clip006.h5",
+      "sha256": "e15a6415ea8f7d751b099752617c1293f78cf7cfe64d8cef77b2fc9e321352bd"
+    },
+    {
+      "id": "isl500-Wait-1",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER002/Wait__session118__clip003.h5",
+      "sha256": "430138bc66b1f83b2737beadb1ff2fafb437cf140d4d288501bd199cb6805bbf"
+    },
+    {
+      "id": "isl500-Wait-2",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER001/Wait__session115__clip018.h5",
+      "sha256": "88d32d912b5e93ed3e7610bf45adb63b2575c5a56035c8abad1a149d2639b387"
+    },
+    {
+      "id": "isl500-Wait-3",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER001/Wait__session12__clip024.h5",
+      "sha256": "ed92f49b9723af2ae9846937fbc670c0d95a46270409d992da363ed03f136299"
+    },
+    {
+      "id": "isl500-Wait-4",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER002/Wait__session135__clip008.h5",
+      "sha256": "c7fc81cf917199b74742c8e9faf0e9dd9e1c5aa72d2f65f1887f8dd6febad56a"
+    },
+    {
+      "id": "isl500-Go-0",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER001/Go__session118__clip011.h5",
+      "sha256": "a1cac03bda8b635dd6a5e8d1a97aeb8aa0903364442dd58f0e39daa3ec5243f3"
+    },
+    {
+      "id": "isl500-Go-1",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER003/Go__session10__clip004.h5",
+      "sha256": "b444f8d4409a7a7e946545a66b31a9edf6f08588557c3e4bbf1d5713bbb54f29"
+    },
+    {
+      "id": "isl500-Go-2",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER001/Go__session185__clip020.h5",
+      "sha256": "59d50367c5845fd99b371a5857fd6d86e2f031a36f2e5e978c3c59afd0e7630d"
+    },
+    {
+      "id": "isl500-Go-3",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER003/Go__session218__clip014.h5",
+      "sha256": "fb3502d6d6283c529ca1290fc0358cd087f2cda67c50aa4d822a49c292d30903"
+    },
+    {
+      "id": "isl500-Go-4",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER001/Go__session209__clip002.h5",
+      "sha256": "566e951297c9c4dcee5f639d0b000cda172ac8269a3feceb63221fa6cff1e7ec"
+    },
+    {
+      "id": "isl500-Eat-0",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER001/Eat__session112__clip008.h5",
+      "sha256": "b4979c12dea806387ac5f5bc5e175729d49afb1f2a641c9e05cad260bef094da"
+    },
+    {
+      "id": "isl500-Eat-1",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER003/Eat__session132__clip022.h5",
+      "sha256": "d1d1aa766d53f5e7cfce141a583f3b5f7f51abdc0a8281f08894f3281716e83b"
+    },
+    {
+      "id": "isl500-Eat-2",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER002/Eat__session150__clip002.h5",
+      "sha256": "3b73567d518c3585f0e6ebcdb5e29a4657a3c7afb2eb202b3542897e3e9b78d8"
+    },
+    {
+      "id": "isl500-Eat-3",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER002/Eat__session175__clip023.h5",
+      "sha256": "df26a570e46a331b0a095b92d6b0605c168922dcd0c056fd628ae5c42c8cc4d6"
+    },
+    {
+      "id": "isl500-Eat-4",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER001/Eat__session201__clip013.h5",
+      "sha256": "5e7c445cec2b9b31bce262d30979be9af5a130b7c24e2994c6d1159bd8e92431"
+    },
+    {
+      "id": "isl500-Drink-0",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER001/Drink__session106__clip016.h5",
+      "sha256": "e0c5f439ae4e164ad5fe46ed21f8efd0eadcfeb4406b3f353dd226d7eb17f098"
+    },
+    {
+      "id": "isl500-Drink-1",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER003/Drink__session101__clip004.h5",
+      "sha256": "b4397396466e4fcec3fad32b40f1e91ff6f7216e90bb6568f5f7520409c43664"
+    },
+    {
+      "id": "isl500-Drink-2",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER001/Drink__session116__clip008.h5",
+      "sha256": "ad749e79823f6214809195d633ef2aba724ed8722561872de2fea5d2afa16bc0"
+    },
+    {
+      "id": "isl500-Drink-3",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER003/Drink__session136__clip030.h5",
+      "sha256": "6bb2f55b214c1f82bfd49ee5d7f4e8b495a283ea189340e09df5af0129656103"
+    },
+    {
+      "id": "isl500-Drink-4",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER001/Drink__session135__clip006.h5",
+      "sha256": "d3768f1770d89e0e07dac0c60d946febe1a864aeced3599ccc7b1522009d1d97"
+    },
+    {
+      "id": "isl500-School-0",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER002/School__session116__clip001.h5",
+      "sha256": "36e155eb6e7b6623f3ac6c42f7fa27a92140f8c027c65adb42f0bc88ed8d6b14"
+    },
+    {
+      "id": "isl500-School-1",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER003/School__session18__clip019.h5",
+      "sha256": "f2bf9bb8a719d2ecdfa0fdc66bc8142711c9b47a7557126fe426c75662137154"
+    },
+    {
+      "id": "isl500-School-2",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER001/School__session15__clip009.h5",
+      "sha256": "bb3ede3c5836664a5c004aa74c72ffec3ac338fa2d2dc9bec2aca2aaad419eef"
+    },
+    {
+      "id": "isl500-School-3",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER002/School__session181__clip001.h5",
+      "sha256": "1122bd7f1c9531e7cf2d4fc4b53e298b0861c6ad860b10ddd9bf764c1d4e7076"
+    },
+    {
+      "id": "isl500-School-4",
+      "source": "Landmarks/MediaPipe/ISL_DATA_USER002/School__session18__clip004.h5",
+      "sha256": "68120634e60ddc146623be5b0855c937fe1f1178fbf0372a1bec42a71df51065"
+    }
+  ]
+}
