@@ -34,6 +34,31 @@ for (const kind of ['static', 'word']) {
     acceptedWrong: cases.filter(x => x.predicted && x.expected !== x.predicted).length,
     rejected: cases.filter(x => !x.predicted).length, cases })
 }
-const report = { note: 'Held-out source observations, not signer-independent or webcam validation.', reports }
+// Photographs from a second source (other participants and camera). Digit 0 is
+// trained from that source, so only its other classes are a cross-source test.
+const crossFile = path.join(__dirname, '../.sign-data-cache/static-cross-source.json')
+// Each photograph is scored as the app would: Spell for every class, and Numbers
+// (digit references only) for digits.
+if (fs.existsSync(crossFile)) for (const context of ['spell', 'numbers']) {
+  const { KnnSignRecognizer, spellingLabel, numberLabel } = load('knn-classifier')
+  const recognizer = new KnnSignRecognizer(undefined, context === 'spell' ? spellingLabel : numberLabel)
+  recognizer.replace(read('public/models/isl-samples.json'))
+  const cases = read('.sign-data-cache/static-cross-source.json').samples.filter(sample => context === 'spell' || numberLabel(sample.label)).map(sample => {
+    const prediction = sample.features ? recognizer.predictFeatures(sample.features, sample.relation) : { label: null, confidence: 0 }
+    return { expected: sample.label, detected: !!sample.features, predicted: prediction.confidence >= .8 ? prediction.label : null,
+      top: prediction.label, confidence: +prediction.confidence.toFixed(3) }
+  })
+  const perLabel = Object.fromEntries([...new Set(cases.map(x => x.expected))].sort().map(label => {
+    const own = cases.filter(x => x.expected === label)
+    return [label, { photographs: own.length, detected: own.filter(x => x.detected).length, acceptedCorrect: own.filter(x => x.predicted === label).length,
+      acceptedWrong: own.filter(x => x.predicted && x.predicted !== label).map(x => x.predicted).join(''),
+      falseAccepts: cases.filter(x => x.predicted === label && x.expected !== label).length }]
+  }))
+  reports.push({ kind: `static-cross-source-${context}`, source:read('.sign-data-cache/static-cross-source.json').source, observations: cases.length,
+    detected: cases.filter(x => x.detected).length, acceptedCorrect: cases.filter(x => x.expected === x.predicted).length,
+    acceptedWrong: cases.filter(x => x.predicted && x.expected !== x.predicted).length, rejected: cases.filter(x => !x.predicted).length,
+    topChoiceCorrect: cases.filter(x => x.top === x.expected).length, perLabel, cases })
+}
+const report = { note: 'Held-out source observations are not signer-independent or webcam validation. The cross-source photographs are other signers and a different camera, but still still images rather than live video.', reports }
 fs.writeFileSync(path.join(__dirname, '../.sign-data-cache/evaluation.json'), JSON.stringify(report, null, 2))
 console.log(JSON.stringify(reports.map(({cases, ...summary}) => summary), null, 2))

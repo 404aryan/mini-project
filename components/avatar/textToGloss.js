@@ -12,7 +12,7 @@
 
 import { getDictionaryGloss, ISL_GLOSS_DICTIONARY } from "./glossDictionary.js";
 import { containsDevanagari, hindiSentenceToGloss } from "./hindiToGloss.js";
-import { SUPPORTED_TOKENS, SUPPORTED_TOKEN_SET } from "../../lib/islVocabulary";
+import { SUPPORTED_TOKENS, SUPPORTED_TOKEN_SET, SIGN_TEXT_ALIASES } from "../../lib/islVocabulary";
 
 // The translator, voice input, quick controls and animation queue all share
 // these canonical gloss tokens.  The action IDs are deliberately UI/debug
@@ -79,6 +79,9 @@ export const SUPPORTED_SIGNS = Object.freeze({
   love: { token: "LOVE", actionId: "clip_love", label: "LOVE" },
   meet: { token: "MEET", actionId: "clip_meet", label: "MEET" },
   morning: { token: "MORNING", actionId: "clip_morning", label: "MORNING" },
+  ...Object.fromEntries(Object.entries(SIGN_TEXT_ALIASES).flatMap(([token, aliases]) => aliases.map(alias => [alias, {
+    token, actionId: `clip_${token.toLowerCase().replaceAll('_', '')}`, label: token.replaceAll('_', ' '),
+  }]))),
 });
 
 const SIGN_PHRASES = Object.keys(SUPPORTED_SIGNS).sort((left, right) => right.length - left.length);
@@ -399,7 +402,7 @@ const STOPWORDS = new Set([
 // grammar path, which keeps the participant instead of dropping it.
 const COVERAGE_SKIP_WORDS = new Set([
   ...STOPWORDS,
-  "hi", "hey", "yeah", "yep", "ok", "okay"
+  "yeah", "yep", "ok", "okay"
 ]);
 
 // Spoken numbers become digits, which the avatar signs with number handshapes.

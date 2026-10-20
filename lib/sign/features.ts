@@ -53,7 +53,8 @@ export function featureHandCount(vector: readonly number[]) {
 }
 
 /** Match object-fit: cover and the CSS-only mirrored video, including portrait crops. */
-export function previewPoint(p: Landmark, width: number, height: number, videoWidth: number, videoHeight: number) {
-  const scale = Math.max(width / videoWidth, height / videoHeight)
-  return { x: width - (p.x * videoWidth * scale + (width - videoWidth * scale) / 2), y: p.y * videoHeight * scale + (height - videoHeight * scale) / 2 }
+export function previewPoint(p: Landmark, width: number, height: number, videoWidth: number, videoHeight: number, fit: 'cover' | 'contain' = 'cover', mirrored = true) {
+  const scale = (fit === 'contain' ? Math.min : Math.max)(width / videoWidth, height / videoHeight)
+  const x = p.x * videoWidth * scale + (width - videoWidth * scale) / 2
+  return { x: mirrored ? width - x : x, y: p.y * videoHeight * scale + (height - videoHeight * scale) / 2 }
 }

@@ -13,6 +13,13 @@ export const MAX_RECOGNITION_SAMPLES = MAX_IMPORT_SAMPLES * 2
  * 0 wrong) and rejected all 180 poses whose second hand was moved 1.5 hand
  * sizes; the low end leaves room for natural placement differences on webcams. */
 export const RELATION_WEIGHT = .02
+/** Labels offered only with Numbers intent. The bundled digit-0 photographs are
+ * byte-identical to that source's letter-O photographs, so the handshape alone
+ * cannot tell 0 from O; adding 0 to spelling turned 12 of 19 cross-source O
+ * photographs into 0. */
+export const NUMBERS_INTENT_ONLY: ReadonlySet<string> = new Set(['0'])
+export const spellingLabel = (label: string) => !NUMBERS_INTENT_ONLY.has(label)
+export const numberLabel = (label: string) => /^[0-9]$/.test(label)
 
 export function parseDataset(input: unknown, maxSamples = MAX_IMPORT_SAMPLES): SignDataset {
   if (!input || typeof input !== 'object') throw new Error('Expected a versioned ISL sample file.')
@@ -40,7 +47,8 @@ export class KnnSignRecognizer implements SignRecognizer {
   labels: string[] = []
   sampleCount = 0
 
-  constructor(private dataset?: SignDataset) {}
+  /** `include` limits which labels this recognizer may report, e.g. digits for Numbers intent. */
+  constructor(private dataset?: SignDataset, private include: (label: string) => boolean = () => true) {}
 
   async init() {
     let dataset = this.dataset
@@ -57,7 +65,7 @@ export class KnnSignRecognizer implements SignRecognizer {
     // Prediction only compares samples with the same hand count, so each
     // label/hand-count group needs its own minimum number of references.
     const counts = new Map<string, number>()
-    const withHands = dataset.samples.map((sample) => ({ ...sample, handCount: featureHandCount(sample.features) }))
+    const withHands = dataset.samples.filter((sample) => this.include(sample.label)).map((sample) => ({ ...sample, handCount: featureHandCount(sample.features) }))
     const group = (sample: { label: string; handCount: number }) => `${sample.label}:${sample.handCount}`
     withHands.forEach((s) => counts.set(group(s), (counts.get(group(s)) ?? 0) + 1))
     this.samples = withHands.filter((s) => counts.get(group(s))! >= MIN_SAMPLES_PER_LABEL)

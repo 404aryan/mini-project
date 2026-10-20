@@ -186,9 +186,9 @@ export function useSignMode({ surface = 'stage' }: { surface?: 'stage' | 'traini
     document.body.style.overflow = 'hidden'
     const focusTimer = requestAnimationFrame(() => document.querySelector<HTMLButtonElement>('.sign-stage-close')?.focus({ preventScroll: true }))
     const escape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') close()
+      if (event.key === 'Escape' && !event.defaultPrevented && !document.fullscreenElement) close()
       if (event.key === 'Tab') {
-        const controls = Array.from(document.querySelectorAll<HTMLElement>('.sign-stage a[href], .sign-stage button:not(:disabled), .sign-stage input:not(:disabled), .sign-stage select:not(:disabled), .sign-stage textarea:not(:disabled), .sign-stage summary, .sign-stage [tabindex]:not([tabindex="-1"]), .mode-dock button')).filter((element) => element.getClientRects().length > 0)
+        const controls = Array.from(document.querySelectorAll<HTMLElement>('.sign-stage a[href], .sign-stage button:not(:disabled), .sign-stage input:not(:disabled), .sign-stage select:not(:disabled), .sign-stage textarea:not(:disabled), .sign-stage summary, .sign-stage [tabindex]:not([tabindex="-1"]), .mode-dock button')).filter((element) => element.getClientRects().length > 0 && !(element.closest('.mode-dock') && document.querySelector('.sign-stage.is-expanded')))
         const index = controls.indexOf(document.activeElement as HTMLElement)
         if (!controls.length) return
         // Focus on another control inside the stage or dock keeps normal tab order;
@@ -216,5 +216,10 @@ export function useSignMode({ surface = 'stage' }: { surface?: 'stage' | 'traini
     }
   }, [pageMode])
 
-  return { active, status, origin, open, close, acceptPrivacy, requestCamera, attachVideo }
+  const pauseCamera = useCallback(() => {
+    stopCamera()
+    if (activeRef.current) setStatus('paused')
+  }, [stopCamera])
+
+  return { active, status, origin, open, close, acceptPrivacy, requestCamera, pauseCamera, attachVideo }
 }

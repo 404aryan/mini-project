@@ -728,7 +728,7 @@ export default function Page() {
       {!sign.active && !hasOpenedSign && <div id="sign-stage" hidden />}
       {(sign.active || hasOpenedSign) && <Suspense fallback={<section id="sign-stage" className="sign-stage sign-stage-loading" aria-hidden={!sign.active} inert={!sign.active} style={{ opacity: sign.active ? 1 : 0, pointerEvents: sign.active ? 'auto' : 'none' }}>
         <div className="sign-loading-card"><h2 id="sign-stage-title" className="sign-sr-only">You Sign. We Speak.</h2><p role="status">Opening your signing space…</p><button type="button" autoFocus className="sign-stage-close" aria-label="Close Sign to Text" onClick={() => sign.close()}><X size={20} /></button></div>
-      </section>}><SignStage active={sign.active} status={sign.status} origin={sign.origin} attachVideo={sign.attachVideo} onAccept={sign.acceptPrivacy} onRetry={sign.requestCamera} onClose={sign.close} /></Suspense>}
+      </section>}><SignStage active={sign.active} status={sign.status} origin={sign.origin} attachVideo={sign.attachVideo} onAccept={sign.acceptPrivacy} onRetry={sign.requestCamera} onPause={sign.pauseCamera} onClose={sign.close} /></Suspense>}
       <Dock signActive={sign.active} cameraLive={sign.status === 'live'} onSign={sign.open} onExit={sign.close} onAbout={openAbout} />
     </div>
     </>

@@ -45,7 +45,7 @@ export class TemporalWordRecognizer implements SignRecognizer {
     const candidate = this.result.candidates.find(candidate => candidate.label === label)
     if (!candidate || this.committed) return false
     this.generation++; this.pending = false; this.pendingFinal = false; this.commitPending = false
-    this.committed = { ...candidate, wordEvent: 'committed', progress: 1, candidates: [] }
+    this.committed = { ...candidate, wordEvent: 'committed', progress: 1, candidates: [], source: candidate.source ?? 'word-model' }
     return true
   }
   dispose() { this.generation++; this.terminate() }
@@ -81,7 +81,7 @@ export class TemporalWordRecognizer implements SignRecognizer {
       if (result.label) {
         this.agreement = { label: result.label, count: this.agreement.label === result.label ? this.agreement.count+1 : 1 }
         if ((final || this.agreement.count >= 2 && now-this.lastMoving >= 250) && !this.committed) {
-          this.committed = { ...result, wordEvent: 'committed', progress: 1 }
+          this.committed = { ...result, wordEvent: 'committed', progress: 1, source: 'word-model' }
           this.commitPending = true
         }
       } else this.agreement = { label: '', count: 0 }
@@ -114,20 +114,20 @@ export class TemporalWordRecognizer implements SignRecognizer {
       if (now-this.thumbsUpLast > 200) this.thumbsUpSince = null
       this.thumbsUpLast = now
       if (this.thumbsUpSince === null) { this.thumbsUpSince = now; this.generation++; this.pending = false; this.pendingFinal = false }
-      this.result = { label: 'YES', confidence: thumbsUp.score, candidates: [{ label: 'YES', confidence: thumbsUp.score }] }
+      this.result = { label: 'YES', confidence: thumbsUp.score, candidates: [{ label: 'YES', confidence: thumbsUp.score, source: 'thumbs-up-shortcut' }] }
       if (now-this.thumbsUpSince >= 500) {
         this.generation++; this.pending = false; this.pendingFinal = false
-        this.committed = { label: 'YES', confidence: thumbsUp.score, wordEvent: 'committed', progress: 1 }
+        this.committed = { label: 'YES', confidence: thumbsUp.score, wordEvent: 'committed', progress: 1, source: 'thumbs-up-shortcut' }
         return { ...this.committed, completed: true }
       }
       return { label: 'YES', confidence: thumbsUp.score, wordEvent: 'collecting', progress: (now-this.thumbsUpSince)/500,
-        candidates: [{ label: 'YES', confidence: thumbsUp.score }] }
+        candidates: [{ label: 'YES', confidence: thumbsUp.score, source: 'thumbs-up-shortcut' }], source: 'thumbs-up-shortcut' }
     }
     this.thumbsUpSince = null
     const personal = this.personal.predict(frame)
     // A personal template still gets its own completed-motion behavior.
     if (personal.label && personal.confidence >= .8) {
-      this.committed = { ...personal, wordEvent: 'committed', progress: 1 }
+      this.committed = { ...personal, wordEvent: 'committed', progress: 1, source: 'personal-words' }
       return { ...this.committed, completed: true }
     }
     if (now-this.lastSample >= 90) {

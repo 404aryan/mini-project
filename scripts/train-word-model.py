@@ -28,6 +28,23 @@ ISL = 'https://huggingface.co/datasets/ISL500/ISL-DATA'
 DICTIONARY = 'https://huggingface.co/datasets/Vignesh3816/Indian_Sign_Language_Data.gov_Rencoded'
 DIM = 135
 CACHE.mkdir(exist_ok=True)
+ISL500_USERS = range(1, 16)
+# Signer-disjoint partitions, fixed before this split was evaluated. Calibration
+# signers choose the gates and which classes may auto-accept; test signers are
+# only used to report the chosen model. Augmentations inherit their clip's side.
+CALIBRATION = ('isl500-12', 'isl500-13')
+TEST = ('isl500-4', 'isl500-5', 'isl500-14', 'isl500-15', 'include-test')
+PRECISION_TARGET = .95
+# A class auto-accepts only with this much calibration evidence (docs/sign-data-collection.md).
+MIN_TRAIN_SIGNERS, MIN_CALIBRATION_CLIPS = 3, 10
+# The live recognizer's trailing windows (lib/sign/temporal-recognizer.ts),
+# sampled from 30 fps sources at roughly its 10 Hz frame rate.
+WINDOW_SECONDS = (.6, 1, 1.6, 2.4, 3.8)
+RUNTIME_STEP = 3
+FOREST = dict(n_estimators=64, max_leaf_nodes=1024, max_features=.25)
+# Shared source glosses are one class rather than competing labels: the ISLRTC
+# dictionary records House/Home and Start/Begin as one sign each.
+ALIAS_LABELS = {'HOUSE': 'HOME', 'BEGIN': 'START'}
 ALIASES = {
     'HOME': ['H/House_Home.mp4'], 'HOUSE': ['H/House_Home.mp4'],
     'WELCOME': ['W/Welcome_(Reply_to_Thanks).mp4'], 'WANT': ['W/Want_Desire_Wish_For.mp4'],
@@ -182,6 +199,98 @@ def deployed_metrics(nodes, roots, labels, features, expected, threshold, margin
                 rejected=int((~accepted).sum()))
 
 
+def runtime_windows(raw):
+    """The trailing windows the browser scores when hands are lowered after a sign."""
+    frames = raw[::RUNTIME_STEP]
+    frames = frames[np.any(frames != 0, axis=(1, 2, 3))]
+    windows, sizes = [], set()
+    for seconds in WINDOW_SECONDS:
+        count = min(len(frames), int(seconds * 30 / RUNTIME_STEP) + 1)
+        if count >= 5 and count not in sizes:
+            windows.append(embed(frames[-count:])); sizes.add(count)
+    return windows
+
+
+class Scored:
+    """Clip and runtime-window forest scores for one partition."""
+    def __init__(self, nodes, roots, labels, records):
+        self.labels = np.array(labels); self.expected = np.array([r['label'] for r in records])
+        self.signers = np.array([r['signer'] for r in records])
+        clip = deployed_scores(nodes, roots, len(labels), np.array([embed(r['raw']) for r in records], dtype=np.float32))
+        self.top1 = self.labels[clip.argmax(axis=1)]
+        windows = [runtime_windows(r['raw']) for r in records]
+        owner = np.repeat(np.arange(len(records)), [len(w) for w in windows])
+        scores = deployed_scores(nodes, roots, len(labels), np.array([x for w in windows for x in w], dtype=np.float32))
+        rank = np.argsort(scores, axis=1); rows = np.arange(len(scores))
+        self.owner, self.window_label = owner, self.labels[rank[:, -1]]
+        self.confidence = scores[rows, rank[:, -1]]; self.margin = self.confidence - scores[rows, rank[:, -2]]
+        # Windows are shortest first, so each clip's last window spans the whole buffered sign.
+        longest = np.cumsum([len(w) for w in windows]) - 1
+        self.whole_label = self.window_label[longest[owner]]
+
+    def decide(self, threshold, margin, eligible=None, agree=True):
+        """Mirror of the worker: the most confident accepted window, else no word.
+        With `agree`, a shorter window only counts when the whole buffered sign has
+        the same top label, so a fragment of a sign cannot stand in for it."""
+        accepted = (self.confidence >= threshold) & (self.margin >= margin) & (self.window_label != '__NONE__')
+        if agree:
+            accepted &= self.window_label == self.whole_label
+        if eligible is not None:
+            accepted &= np.isin(self.window_label, sorted(eligible))
+        decision = np.full(len(self.expected), None, dtype=object); best = np.full(len(self.expected), -1.)
+        for i in np.where(accepted)[0]:
+            if self.confidence[i] > best[self.owner[i]]:
+                best[self.owner[i]] = self.confidence[i]; decision[self.owner[i]] = self.window_label[i]
+        return decision
+
+    def summary(self, decision, mask=None):
+        mask = np.ones(len(self.expected), bool) if mask is None else mask
+        accepted = np.array([d is not None for d in decision]) & mask
+        correct = accepted & (decision == self.expected)
+        return dict(observations=int(mask.sum()), top1Correct=int((self.top1 == self.expected)[mask].sum()),
+                    acceptedCorrect=int(correct.sum()), acceptedWrong=int((accepted & ~correct).sum()), rejected=int((mask & ~accepted).sum()))
+
+
+def choose_gates(scored):
+    """Most correct calibration accepts at or above the precision target."""
+    best = None
+    for threshold in np.round(np.arange(.3, .81, .02), 2):
+        for margin in (.05, .1, .15, .2):
+            result = scored.summary(scored.decide(threshold, margin))
+            accepted = result['acceptedCorrect'] + result['acceptedWrong']
+            if accepted and result['acceptedCorrect'] / accepted >= PRECISION_TARGET:
+                key = (result['acceptedCorrect'], threshold, margin)
+                if best is None or key > best: best = key
+    if best is None:
+        raise RuntimeError('No gate reaches the calibration precision target')
+    return float(best[1]), float(best[2])
+
+
+def per_class(scored, decision, labels):
+    rows = {}
+    for label in labels:
+        own = scored.expected == label
+        claimed = np.array([d == label for d in decision])
+        correct = own & claimed
+        rows[label] = dict(observations=int(own.sum()), signers=len(set(scored.signers[own])), top1Correct=int((own & (scored.top1 == label)).sum()),
+                           acceptedCorrect=int(correct.sum()), acceptedWrong=int((own & ~claimed & np.array([d is not None for d in decision])).sum()),
+                           falseAccepts=int((claimed & ~own).sum()))
+    return rows
+
+
+def confusions(scored, limit=40):
+    pairs = collections.Counter((a, b) for a, b in zip(scored.expected, scored.top1) if a != b)
+    return [dict(expected=a, predicted=b, count=c) for (a, b), c in pairs.most_common(limit)]
+
+
+def track_hash(raw):
+    return hashlib.sha256(np.ascontiguousarray(raw, dtype='<f4').tobytes()).hexdigest()
+
+
+def partition(record):
+    return 'calibration' if record['signer'] in CALIBRATION else 'test' if record['signer'] in TEST else 'train'
+
+
 def embed(raw):
     frames = np.array([frame_features(frame) for frame in raw], dtype=np.float32)
     at = np.linspace(0, len(frames)-1, 12)
@@ -252,32 +361,31 @@ def main():
             records = [dict(**record, raw=data[str(i)]) for i,record in enumerate(metadata)]
         extend_records(records)
         save_records(records)
-        train(records, tokens, {'HOUSE': 'HOME', 'BEGIN': 'START'})
+        train(records, tokens)
         return
     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool:
-        trees = list(pool.map(user_tree, range(1, 6)))
+        trees = list(pool.map(user_tree, ISL500_USERS))
     available = {normal(pathlib.PurePosixPath(x['path']).name.split('__')[0]): pathlib.PurePosixPath(x['path']).name.split('__')[0] for x in trees[0] if '/_mnt_' not in x['path']}
     jobs = []
     for label in tokens:
         original = available.get(normal(label))
         if not original:
             continue
-        for user, tree in enumerate(trees, 1):
-            paths = sorted(x['path'] for x in tree if pathlib.PurePosixPath(x['path']).name.split('__')[0] == original)[:6]
-            jobs.extend((label, user, path) for path in paths)
+        # Every first-round clip of every signer; the `_mnt_` second-round copies are not used.
+        for user, tree in zip(ISL500_USERS, trees):
+            paths = sorted(x['path'] for x in tree if '/_mnt_' not in x['path'] and pathlib.PurePosixPath(x['path']).name.split('__')[0] == original)
+            jobs.extend((ALIAS_LABELS.get(label, label), user, path) for path in paths)
     print('Downloading/extracting', len(jobs), 'real multi-signer sequences', flush=True)
     records = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=12) as pool:
         for index, (label, user, path, raw) in enumerate(pool.map(isl_extract, jobs)):
             if raw is not None:
                 records.append(dict(label=label, signer=f'isl500-{user}', source=path, raw=raw))
-            if index % 100 == 0:
+            if index % 500 == 0:
                 print('ISL500', index+1, '/', len(jobs), flush=True)
     dictionary = json.loads((CACHE / 'dictionary-matches.json').read_text())
     dictionary.update(ALIASES)
-    # Shared source glosses are one class, rather than conflicting labels.
-    alias_labels = {'HOUSE': 'HOME', 'BEGIN': 'START'}
-    dictionary_jobs = sorted(set((alias_labels.get(label, label), path) for label, paths in dictionary.items() for path in paths if '(Explanation)' not in path))
+    dictionary_jobs = sorted(set((ALIAS_LABELS.get(label, label), path) for label, paths in dictionary.items() for path in paths if '(Explanation)' not in path))
     print('Extracting', len(dictionary_jobs), 'dictionary recordings', flush=True)
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
         for index, result in enumerate(pool.map(dictionary_extract, dictionary_jobs)):
@@ -289,7 +397,7 @@ def main():
     # Cache real sequences before training so experiments never need redownloads.
     extend_records(records)
     save_records(records)
-    train(records, tokens, alias_labels)
+    train(records, tokens)
 
 
 def save_records(records):
@@ -339,12 +447,15 @@ def extend_records(records):
         print('INCLUDE added', label, flush=True)
 
 
-def train(records, tokens, alias_labels):
+def train(records, tokens):
+    for record in records:
+        record['label'] = ALIAS_LABELS.get(record['label'], record['label'])
+        record['partition'] = partition(record)
     counts = collections.Counter(r['label'] for r in records)
-    labels = sorted(label for label,count in counts.items() if count >= 1)
-    # Users 4/5 are never augmented into the training partition.
-    train_records = [r for r in records if r['signer'] not in ['isl500-4', 'isl500-5', 'include-test']]
-    test_records = [r for r in records if r['signer'] in ['isl500-4', 'isl500-5', 'include-test']]
+    train_records = [r for r in records if r['partition'] == 'train']
+    calibration_records = [r for r in records if r['partition'] == 'calibration']
+    test_records = [r for r in records if r['partition'] == 'test']
+    labels = sorted({r['label'] for r in train_records})
     rng = np.random.default_rng(20261019)
     x, y = [], []
     for record in train_records:
@@ -366,11 +477,8 @@ def train(records, tokens, alias_labels):
     for _ in range(80):
         x.append(embed(np.zeros((12,2,21,3),dtype=np.float32))); y.append('__NONE__')
     print('Training forest:', len(x), 'examples,', len(labels), 'words,', len(x[0]), 'features', flush=True)
-    model = ExtraTreesClassifier(n_estimators=96, max_leaf_nodes=384, max_features=.25,
-                                class_weight='balanced', n_jobs=4, random_state=20261019)
+    model = ExtraTreesClassifier(**FOREST, class_weight='balanced', n_jobs=4, random_state=20261019)
     model.fit(np.array(x), y)
-    tests = np.array([embed(r['raw']) for r in test_records], dtype=np.float32)
-    expected = np.array([r['label'] for r in test_records])
     classes = list(model.classes_)
     # Each fixed-width node: feature, threshold, left, right, then top three class/probability pairs.
     nodes, roots = [], []
@@ -383,24 +491,53 @@ def train(records, tokens, alias_labels):
                 c=int(top[j]) if j<len(top) else 0;row += [c,float(value[c]) if j<len(top) else 0]
             nodes.append(row)
     binary=np.array(nodes,dtype='<f4');binary.tofile(OUT / 'isl-temporal-forest.bin')
-    # Report what ships: the compressed float32 forest, not the float64 estimator.
-    metrics = dict(**deployed_metrics(binary, roots, classes, tests, expected, .55, .15),
-                   split='ISL500 signers 4/5 and separate INCLUDE clips held out; dictionary single-source classes not independently validated',
-                   note='Exact shipped float32 forest.')
-    print('Validation', json.dumps(metrics), flush=True)
-    covered=sorted(set(labels)|{alias for alias,canonical in alias_labels.items() if canonical in labels})
+    # Everything below scores the compressed float32 forest that ships, never the float64 estimator.
+    calibration = Scored(binary, roots, classes, calibration_records)
+    threshold, margin = choose_gates(calibration)
+    train_signers = {label: len({r['signer'] for r in train_records if r['label'] == label}) for label in labels}
+    calibration_rows = per_class(calibration, calibration.decide(threshold, margin), labels)
+    auto_accept = sorted(label for label, row in calibration_rows.items() if train_signers[label] >= MIN_TRAIN_SIGNERS
+                         and row['observations'] >= MIN_CALIBRATION_CLIPS and row['acceptedCorrect']
+                         and row['acceptedCorrect'] / (row['acceptedCorrect'] + row['falseAccepts']) >= PRECISION_TARGET)
+    calibration_decision = calibration.decide(threshold, margin, auto_accept)
+    test = Scored(binary, roots, classes, test_records)
+    test_decision = test.decide(threshold, margin, auto_accept)
+    test_rows = per_class(test, test_decision, labels)
+    calibration_rows = per_class(calibration, calibration_decision, labels)
+    split = dict(train=sorted({r['signer'] for r in train_records}), calibration=list(CALIBRATION), test=list(TEST))
+    validation = dict(**test.summary(test_decision), previousGates=test.summary(test.decide(.55, .15)),
+                      split='Signer-disjoint: '+', '.join(s for s in TEST if s.startswith('isl500'))+' plus separate INCLUDE clips; gates and auto-accept classes chosen on '+' and '.join(CALIBRATION)+' only.',
+                      note='Exact shipped float32 forest, scored with the live trailing windows. Dictionary-only classes have no independent evaluation and never auto-accept.')
+    print('Gates', threshold, margin, 'auto-accept classes', len(auto_accept), flush=True)
+    print('Calibration', json.dumps(calibration.summary(calibration_decision)), flush=True)
+    print('Validation', json.dumps(validation), flush=True)
+    provenance = [dict(label=r['label'], signer=r['signer'], source=r['source'], partition=r['partition'], frames=len(r['raw']), sha256=track_hash(r['raw'])) for r in records]
+    dataset = hashlib.sha256('\n'.join(sorted(f"{p['partition']} {p['label']} {p['source']} {p['sha256']}" for p in provenance)).encode()).hexdigest()
+    sha = hashlib.sha256(binary.tobytes()).hexdigest()
+    covered=sorted(set(labels)|{alias for alias,canonical in ALIAS_LABELS.items() if canonical in labels})
     info=dict(version=1,features='hand-temporal-stats-v1',featureLength=len(x[0]),nodeWidth=10,nodeCount=len(nodes),roots=roots,labels=classes,
-              vocabulary=covered,aliases=alias_labels,missing=[t for t in tokens if t not in covered],threshold=.55,margin=.15,
-              trainingObservations=len(train_records),sourceCounts=dict(counts),validation=metrics,
-              weights='/models/isl-temporal-forest.bin',sha256=hashlib.sha256(binary.tobytes()).hexdigest(),
+              vocabulary=covered,aliases={alias: canonical for alias, canonical in ALIAS_LABELS.items() if canonical in labels},
+              missing=[t for t in tokens if t not in covered],threshold=threshold,margin=margin,autoAccept=auto_accept,
+              trainingObservations=len(train_records),sourceCounts=dict(sorted(counts.items())),partitions=split,validation=validation,
+              calibration=calibration.summary(calibration_decision),evaluation='/models/word-evaluation.json',datasetSha256=dataset,
+              training=dict(command='python scripts/train-word-model.py [--cached]',forest=FOREST,precisionTarget=PRECISION_TARGET,
+                            autoAcceptRule=f'>= {MIN_TRAIN_SIGNERS} training signers, >= {MIN_CALIBRATION_CLIPS} calibration clips, calibration precision >= {PRECISION_TARGET}',
+                            requirements='scripts/sign-training-requirements.txt'),
+              weights='/models/isl-temporal-forest.bin',sha256=sha,
               sources=[ISL,DICTIONARY,'https://huggingface.co/datasets/ai4bharat/INCLUDE','https://www.kaggle.com/datasets/hariragavendramg/isl-canonical-motion-v1'],license='Mixed source terms: ISL500 research/academic only; dictionary MIT card and original ISLRTC attribution; INCLUDE CC BY 4.0; canonical release CC0 with original ISLRTC attribution. See SIGN-DATA.md.')
+    evaluation = dict(version=1, model=sha, datasetSha256=dataset, partitions=split, gates=dict(threshold=threshold, margin=margin, chosenOn='calibration'),
+                      autoAccept=auto_accept, calibration=dict(**calibration.summary(calibration_decision), perClass=calibration_rows, confusions=confusions(calibration)),
+                      test=dict(**validation, perClass=test_rows, perSigner={s: test.summary(test_decision, test.signers == s) for s in sorted(set(test.signers))},
+                                confusions=confusions(test)),
+                      trainingSigners=train_signers)
     (OUT / 'isl-temporal-model.json').write_text(json.dumps(info,indent=2)+'\n')
-    (OUT / 'temporal-provenance.json').write_text(json.dumps([{k:v for k,v in r.items() if k!='raw'} for r in records],indent=2)+'\n')
+    (OUT / 'word-evaluation.json').write_text(json.dumps(evaluation,indent=1)+'\n')
+    (OUT / 'temporal-provenance.json').write_text(json.dumps(provenance,indent=0)+'\n')
     # Real held-out raw landmarks for end-to-end tracker-to-transcript replay.
-    replay=[r for r in test_records if r['label'] in ['YES','NO','HELLO','THANK_YOU']][:30]
+    core = ['HELLO','YES','NO','GOOD','BAD','THANK_YOU','GO','WANT','PLEASE','HELP','SORRY','COME','WATER','EAT','DRINK']
+    replay=[r for r in test_records if r['label'] in core]
     (CACHE / 'temporal-replay.json').write_text(json.dumps([{**{k:v for k,v in r.items() if k!='raw'},'hands':r['raw'][::2].tolist()} for r in replay]))
     print('Model saved:', len(nodes), 'nodes;', len(covered), '/', len(tokens), 'avatar words covered', flush=True)
-
 
 if __name__ == '__main__':
     main()

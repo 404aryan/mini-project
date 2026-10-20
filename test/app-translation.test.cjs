@@ -50,6 +50,23 @@ test('fully covered sentences still get ISL order', () => {
   assert.deepEqual(gloss('Hello, I need help'), ['HELLO', 'I', 'NEED', 'HELP'])
 })
 
+test('greeting aliases retain HELLO inside mixed phrases', () => {
+  assert.deepEqual(gloss('hi'), ['HELLO'])
+  assert.deepEqual(gloss('hey'), ['HELLO'])
+  assert.deepEqual(gloss('hi I want water'), ['HELLO', 'I', 'WATER', 'WANT'])
+  assert.deepEqual(gloss('hey I need help'), ['HELLO', 'I', 'NEED', 'HELP'])
+  assert.deepEqual(gloss('thanks'), ['THANK_YOU'])
+})
+
+test('shared vocabulary keeps word I distinct from fingerspelled I', () => {
+  assert.equal(vocabulary.SIGN_VOCABULARY.length, 200)
+  const pronoun = vocabulary.SIGN_VOCABULARY.find(sign => sign.id === 'word:I')
+  const letter = vocabulary.SIGN_VOCABULARY.find(sign => sign.id === 'letter:I')
+  assert.equal(pronoun.kind, 'word')
+  assert.equal(letter.kind, 'letter')
+  assert.notEqual(pronoun.animation.module, letter.animation.module)
+})
+
 test('every restored vocabulary sign is reachable by its canonical name and readable label', () => {
   for (const token of vocabulary.SUPPORTED_TOKENS) {
     assert.deepEqual(gloss(token), [token], `${token} plays its own animation`)
