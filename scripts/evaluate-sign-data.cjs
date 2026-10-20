@@ -8,18 +8,25 @@ function load(name) {
   const exports = {}; cache.set(name, exports)
   vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../lib/sign', `${name}.ts`), 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
-  }).outputText, { exports, require: name => load(name.replace('./', '')), Float64Array })
+  }).outputText, { exports, require: name => load(name.replace(/^\.\//, '')), Float64Array })
   return exports
 }
 const read = file => JSON.parse(fs.readFileSync(path.join(__dirname, '..', file), 'utf8'))
+// The held-out files are produced by scripts/prepare-sign-data.py and
+// scripts/prepare-word-data.py into the git-ignored cache. Without them there is
+// nothing to evaluate, which must never look like a passing run.
+const missing = ['static', 'word'].map(kind => `.sign-data-cache/${kind}-heldout.json`).filter(file => !fs.existsSync(path.join(__dirname, '..', file)))
+if (missing.length) {
+  console.error(`Held-out data missing: ${missing.join(', ')}. Run the preparation scripts first; no evaluation was performed.`)
+  process.exit(1)
+}
 const reports = []
 for (const kind of ['static', 'word']) {
   const file = `.sign-data-cache/${kind}-heldout.json`
-  if (!fs.existsSync(path.join(__dirname, '..', file))) continue
   const recognizer = kind === 'static' ? new (load('knn-classifier').KnnSignRecognizer)() : new (load('dtw-classifier').DtwSignRecognizer)()
   recognizer.replace(read(`public/models/isl-${kind === 'static' ? 'samples' : 'words'}.json`))
   const cases = read(file).samples.map(sample => {
-    const prediction = kind === 'static' ? recognizer.predictFeatures(sample.features) : recognizer.predictSequence(sample.frames, sample.handCount)
+    const prediction = kind === 'static' ? recognizer.predictFeatures(sample.features, sample.relation) : recognizer.predictSequence(sample.frames, sample.handCount)
     return { expected: sample.label, predicted: prediction.confidence >= .8 ? prediction.label : null, confidence: +prediction.confidence.toFixed(3) }
   })
   reports.push({ kind, labels: recognizer.labels.length, references: recognizer.sampleCount, observations: cases.length,

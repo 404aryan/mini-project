@@ -4,6 +4,39 @@ Checked against the working tree on 19 October 2026. All five phases have an
 implementation. Recognition now automatically loads bundled real ISL samples.
 See [dataset sources, licenses and validation](../public/models/SIGN-DATA.md).
 
+Release checks: `npm run check` runs the TypeScript check, every unit test and
+the production build (which now type-checks too). With the app running,
+`npm run test:browser -- http://localhost:3000` drives the main flows in
+Chromium; it needs Playwright installed (see `test/browser/browser.cjs`).
+Start the app with an empty `GEMINI_API_KEY` for those runs so no paid AI
+requests are made.
+
+## Current camera recognition follow-up
+
+Words now use a trained, self-hosted temporal forest covering 152/164 avatar
+vocabulary entries, prepared from 2,207 real recordings. The 12 missing entries
+are listed in the model metadata and data notes; they are not advertised as
+pretrained. The model uses shape, hand positions and temporal features across
+different durations. Completed word events go directly to the transcript after
+a finish/release, rather than requiring the letters' additional 700ms hold.
+
+The same thumbs-up used by the avatar for YES is also recognized by MediaPipe's
+pretrained gesture model. A stable 500ms detection adds YES once. Transcript
+status now reports collecting/matching and exposes uncertain candidates as
+explicit tap-to-add suggestions. Confirmation cancels a pending auto-insert of
+the same gesture. The personal studio shares the avatar's full vocabulary.
+
+The exact deployed forest scored 563/763 (73.8%) top-choice accuracy on the
+withheld source set: 176 correct auto-accepts, 12 incorrect auto-accepts and 575
+rejections at the current gates. Dictionary-only classes have no independent
+test set. This is still an experimental recognizer, not production accuracy.
+Source-based replay and real-image gesture tests verify the recognition-to-text
+path; physical-webcam and browser UI verification remain unavailable.
+
+Verified: 76 tests, TypeScript and production build. Word weights retain their
+source's academic/research restriction. Current implementation details and
+rebuild commands are in [SIGN-DATA.md](../public/models/SIGN-DATA.md).
+
 | Phase | Implemented | Details |
 | --- | --- | --- |
 | P1 | Dock, mode URL, portal, retained avatar/PiP, consent and camera lifecycle | [Phase 1](sign-phase-1.md) |
@@ -23,10 +56,9 @@ See [dataset sources, licenses and validation](../public/models/SIGN-DATA.md).
   permission/light behavior, audible speech, and sustained frame rates still
   need hands-on checks. Lighthouse scores in the Phase 5 notes are previous lab
   measurements; they were not rerun in this follow-up.
-- **Word data:** 60 ISL500 recordings enable 12 words, with 20 personal training
-  slots. Words remain experimental: 4 of 12 withheld source motions matched;
-  8 were rejected and none were incorrectly accepted. ISL500 is licensed for
-  research/academic use only. See the data notes before commercial distribution.
+- **Word data:** 152 vocabulary entries now use the trained temporal model;
+  12 entries still need labelled recordings. Dictionary-only classes need more
+  examples and independent testing. See the follow-up above and source terms.
 
 ## Bundled-data follow-up
 

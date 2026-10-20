@@ -3,7 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "test": "node --test test/*.test.cjs",
     "test:sign": "node --test test/sign-*.test.cjs",
+    "test:app": "node --test test/app-*.test.cjs",
+    "test:browser": "node test/browser/run.cjs",
+    "typecheck": "tsc --noEmit --incremental false",
+    "check": "npm run typecheck && npm test && npm run build",
     "dev": "next dev",
     "build": "next build",
     "start": "next start"

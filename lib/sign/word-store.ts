@@ -1,4 +1,4 @@
-import { emptyWordDataset, mergeWordDatasets, parseWordDataset, wordRecognitionDataset, type WordDataset, type WordSample } from './word-data'
+import { emptyWordDataset, mergeWordDatasets, parseWordDataset, serializeWordDataset, wordRecognitionDataset, type WordDataset, type WordSample } from './word-data'
 
 const DATABASE = 'yap-render-words', CHANGE = 'yap-render-word-samples-changed'
 function openDatabase(): Promise<IDBDatabase> {
@@ -43,8 +43,9 @@ async function transaction(mutate?: (current: WordDataset) => WordDataset): Prom
   } finally { database.close() }
 }
 export function readStoredWords() { return transaction() }
-export function addStoredWords(samples: WordSample[]) {
-  const incoming = parseWordDataset({ ...emptyWordDataset(), samples })
+/** Takes new recordings, or a whole imported file so its provenance stays with its samples. */
+export function addStoredWords(input: WordSample[] | WordDataset) {
+  const incoming = parseWordDataset(Array.isArray(input) ? { ...emptyWordDataset(), samples: input } : input)
   return transaction((current) => mergeWordDatasets(current, incoming))
 }
 export function removeStoredWords(ids: string[]) {
@@ -57,9 +58,9 @@ export function subscribeWordChanges(onChange: () => void) {
   try { channel = new BroadcastChannel(CHANGE); channel.onmessage = onChange } catch { /* Same-tab and focus updates still work. */ }
   return () => { window.removeEventListener(CHANGE, onChange); window.removeEventListener('focus', onChange); channel?.close() }
 }
-export async function readWordRecognitionDataset() {
+export async function readWordRecognitionDataset({ personalOnly = false } = {}) {
   const results = await Promise.allSettled([
-    fetch('/models/isl-words.json', { cache: 'no-store' }).then(async (response) => {
+    personalOnly ? Promise.resolve(emptyWordDataset()) : fetch('/models/isl-words.json', { cache: 'no-store' }).then(async (response) => {
       if (!response.ok) throw new Error('Bundled words unavailable; using device recordings only.')
       return parseWordDataset(await response.json())
     }), readStoredWords(),
@@ -67,11 +68,11 @@ export async function readWordRecognitionDataset() {
   const bundled = results[0].status === 'fulfilled' ? results[0].value : emptyWordDataset()
   const local = results[1].status === 'fulfilled' ? results[1].value : emptyWordDataset()
   const warning = results.filter((result) => result.status === 'rejected').map((result) => result.status === 'rejected' && result.reason instanceof Error ? result.reason.message : 'Word recordings unavailable.').join(' ')
-  return { dataset: wordRecognitionDataset(bundled, local), warning }
+  return { dataset: wordRecognitionDataset(bundled, local), personal: local, warning }
 }
-export function downloadWords(input: WordDataset) {
-  const dataset = parseWordDataset(input), url = URL.createObjectURL(new Blob([JSON.stringify(dataset, null, 2)], { type: 'application/json' }))
+export function downloadWords(input: WordDataset, fileName = 'isl-words.json') {
+  const url = URL.createObjectURL(new Blob([serializeWordDataset(input)], { type: 'application/json' }))
   const link = document.createElement('a')
-  link.href = url; link.download = 'isl-words.json'; link.click()
+  link.href = url; link.download = fileName; link.click()
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }

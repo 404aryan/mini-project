@@ -11,6 +11,7 @@ import json
 import os
 import pathlib
 import re
+import sys
 import time
 import urllib.parse
 import urllib.request
@@ -19,7 +20,6 @@ import cv2
 import h5py
 import numpy as np
 from sklearn.ensemble import ExtraTreesClassifier
-from sklearn.metrics import accuracy_score
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 CACHE = ROOT / '.sign-data-cache'
@@ -27,6 +27,7 @@ OUT = ROOT / 'public/models'
 ISL = 'https://huggingface.co/datasets/ISL500/ISL-DATA'
 DICTIONARY = 'https://huggingface.co/datasets/Vignesh3816/Indian_Sign_Language_Data.gov_Rencoded'
 DIM = 135
+CACHE.mkdir(exist_ok=True)
 ALIASES = {
     'HOME': ['H/House_Home.mp4'], 'HOUSE': ['H/House_Home.mp4'],
     'WELCOME': ['W/Welcome_(Reply_to_Thanks).mp4'], 'WANT': ['W/Want_Desire_Wish_For.mp4'],
@@ -45,6 +46,7 @@ ALIASES = {
     'SCARED': ['A/Afraid_Scared.mp4'], 'TIRED': ['T/Tired_Exhausted_Fatigued.mp4'],
     'LATE': ['L/Late_(Sign_1).mp4', 'L/Late_(Sign_2).mp4'],
     'IMPORTANT': ['I/Important_Significant.mp4'], 'I': ['I/I_Me.mp4'],
+    'FRUIT': ['F/Fruits.mp4'], 'VEGETABLE': ['V/Vegetables.mp4'], 'PARENT': ['P/Parents.mp4'],
 }
 
 
@@ -87,6 +89,30 @@ def user_tree(user):
     return data
 
 
+def prepare_indices():
+    match_file = CACHE / 'dictionary-matches.json'
+    if not match_file.exists():
+        def letter_tree(letter):
+            url = DICTIONARY.replace('/datasets/', '/api/datasets/') + '/tree/main/'+letter+'?recursive=true&limit=1000'
+            entries = []
+            while url:
+                response = urllib.request.urlopen(url, timeout=60); entries.extend(json.load(response))
+                link = response.headers.get('Link',''); url = link.split('>;')[0].strip('<') if 'rel="next"' in link else None
+            return entries
+        with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:
+            tree = [entry for entries in pool.map(letter_tree, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ') for entry in entries]
+        match_file.write_text(json.dumps({token:[entry['path'] for entry in tree if normal(pathlib.PurePosixPath(entry['path']).stem)==normal(token)] for token in vocabulary()}))
+    include_file = CACHE / 'include-tree.json'
+    if not include_file.exists():
+        base = 'https://www.kaggle.com/api/v1/datasets/list/swaptr/indian-sign-language-mediapipe-holistic-landmarks?pageSize=200'
+        data, entries = {}, []
+        while True:
+            data = json.load(urllib.request.urlopen(base+('&pageToken='+urllib.parse.quote(data['nextPageToken']) if data.get('nextPageToken') else ''),timeout=60))
+            entries.extend(data['datasetFiles'])
+            if not data.get('nextPageToken'): break
+        include_file.write_text(json.dumps(entries))
+
+
 def frame_features(raw):
     present = np.isfinite(raw).all(axis=(1, 2)) & np.any(raw != 0, axis=(1, 2))
     hands = raw[present]
@@ -126,6 +152,34 @@ def trim(raw):
                 for i in range(left+1, right):
                     raw[i, hand] = raw[left, hand] + (raw[right, hand]-raw[left, hand]) * (i-left)/(right-left)
     return raw
+
+
+def deployed_scores(nodes, roots, label_count, features):
+    """Class scores from the shipped float32 node table, walked the way the browser forest walks it."""
+    scores = np.zeros((len(features), label_count))
+    for root in roots:
+        indices = np.full(len(features), root, dtype=int)
+        for _ in range(100):
+            columns = nodes[indices, 0].astype(int); active = np.where(columns >= 0)[0]
+            if not len(active): break
+            right = features[active, columns[active]] > nodes[indices[active], 1]
+            indices[active] = nodes[indices[active], 2 + right.astype(int)].astype(int)
+        for position in [4, 6, 8]:
+            classes = nodes[indices, position].astype(int)
+            scores[np.arange(len(features)), classes] += nodes[indices, position + 1] / len(roots)
+    return scores
+
+
+def deployed_metrics(nodes, roots, labels, features, expected, threshold, margin_gate):
+    """Validation numbers for the deployed binary, so the manifest matches what ships."""
+    scores = deployed_scores(nodes, roots, len(labels), features)
+    rank = np.argsort(scores, axis=1); best = scores[np.arange(len(scores)), rank[:, -1]]
+    margin = best - scores[np.arange(len(scores)), rank[:, -2]]
+    predicted = np.array(labels)[rank[:, -1]]
+    accepted = (best >= threshold) & (margin >= margin_gate) & (predicted != '__NONE__')
+    return dict(observations=len(features), correct=int((predicted == expected).sum()), accuracy=float((predicted == expected).mean()),
+                acceptedCorrect=int(((predicted == expected) & accepted).sum()), acceptedWrong=int(((predicted != expected) & accepted).sum()),
+                rejected=int((~accepted).sum()))
 
 
 def embed(raw):
@@ -190,7 +244,16 @@ def isl_extract(item):
 
 
 def main():
+    prepare_indices()
     tokens = vocabulary()
+    if '--cached' in sys.argv:
+        metadata = json.loads((CACHE / 'temporal-recordings.json').read_text())
+        with np.load(CACHE / 'temporal-recordings.npz') as data:
+            records = [dict(**record, raw=data[str(i)]) for i,record in enumerate(metadata)]
+        extend_records(records)
+        save_records(records)
+        train(records, tokens, {'HOUSE': 'HOME', 'BEGIN': 'START'})
+        return
     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool:
         trees = list(pool.map(user_tree, range(1, 6)))
     available = {normal(pathlib.PurePosixPath(x['path']).name.split('__')[0]): pathlib.PurePosixPath(x['path']).name.split('__')[0] for x in trees[0] if '/_mnt_' not in x['path']}
@@ -224,18 +287,64 @@ def main():
             if index % 10 == 0:
                 print('Dictionary', index+1, '/', len(dictionary_jobs), flush=True)
     # Cache real sequences before training so experiments never need redownloads.
-    manifest = [{k:v for k,v in r.items() if k != 'raw'} for r in records]
-    np.savez_compressed(CACHE / 'temporal-recordings.npz', **{str(i): r['raw'] for i,r in enumerate(records)})
-    (CACHE / 'temporal-recordings.json').write_text(json.dumps(manifest, indent=2))
+    extend_records(records)
+    save_records(records)
     train(records, tokens, alias_labels)
+
+
+def save_records(records):
+    np.savez_compressed(CACHE / 'temporal-recordings.npz', **{str(i): r['raw'] for i,r in enumerate(records)})
+    (CACHE / 'temporal-recordings.json').write_text(json.dumps([{k:v for k,v in r.items() if k != 'raw'} for r in records], indent=2))
+
+
+def extend_records(records):
+    existing = {record['source'] for record in records}
+    for label in ['FRUIT', 'VEGETABLE', 'PARENT']:
+        for path in ALIASES[label]:
+            if path not in existing:
+                _, _, raw = dictionary_extract((label, path))
+                if raw is not None:
+                    records.append(dict(label=label, signer='dictionary', source=path, raw=raw))
+    keep_source = 'ISL-canonical-motion-v1/isl_canonical_v1_part2/p4b_id_59088652333312b5.npz'
+    if keep_source not in existing:
+        local = CACHE / 'canonical-keep.npz'
+        download('https://www.kaggle.com/api/v1/datasets/download/hariragavendramg/isl-canonical-motion-v1?fileName=isl_canonical_v1_part2/p4b_id_59088652333312b5.npz',local)
+        if hashlib.sha256(local.read_bytes()).hexdigest() != '9f1bce692e69e3d93d8266acb285c32a46f3ad9bc25af162b56ec64fc796ef9c':
+            raise RuntimeError('KEEP source checksum does not match its published audit manifest')
+        with np.load(local,allow_pickle=False) as data:
+            raw = np.stack([data['left_hand'],data['right_hand']],axis=1)
+        raw = trim(raw)
+        if raw is not None:
+            records.append(dict(label='KEEP',signer='canonical-dictionary',source=keep_source,raw=raw))
+    # INCLUDE contributes multiple real performances for gaps in the dictionary.
+    import pyarrow.parquet as pq
+    index = json.loads((CACHE / 'include-tree.json').read_text())
+    for original, label in {'clothing':'CLOTHES', 'parent':'PARENT', 'brother':'BROTHER', 'park':'PARK'}.items():
+        paths = sorted(x['name'] for x in index if '/'+original+'/' in x['name'])[:5]
+        for i, path in enumerate(paths):
+            source = 'INCLUDE/'+path
+            if source in existing:
+                continue
+            local = CACHE / ('include-'+hashlib.sha256(path.encode()).hexdigest()+'.parquet')
+            download('https://www.kaggle.com/api/v1/datasets/download/swaptr/indian-sign-language-mediapipe-holistic-landmarks?fileName='+urllib.parse.quote(path), local)
+            table = pq.read_table(local).to_pandas()
+            hands = table[table['type'].isin(['left_hand','right_hand'])]
+            raw = np.zeros((int(table['frame'].max())+1,2,21,3),dtype=np.float32)
+            for hand, slot in [('left_hand',0),('right_hand',1)]:
+                selected = hands[hands['type']==hand]
+                raw[selected['frame'].to_numpy(dtype=int),slot,selected['landmark_index'].to_numpy(dtype=int)] = selected[['x','y','z']].fillna(0).to_numpy()
+            raw = trim(raw)
+            if raw is not None:
+                records.append(dict(label=label, signer='include-test' if i==4 else 'include-train', source=source, raw=raw))
+        print('INCLUDE added', label, flush=True)
 
 
 def train(records, tokens, alias_labels):
     counts = collections.Counter(r['label'] for r in records)
     labels = sorted(label for label,count in counts.items() if count >= 1)
     # Users 4/5 are never augmented into the training partition.
-    train_records = [r for r in records if r['signer'] not in ['isl500-4', 'isl500-5']]
-    test_records = [r for r in records if r['signer'] in ['isl500-4', 'isl500-5']]
+    train_records = [r for r in records if r['signer'] not in ['isl500-4', 'isl500-5', 'include-test']]
+    test_records = [r for r in records if r['signer'] in ['isl500-4', 'isl500-5', 'include-test']]
     rng = np.random.default_rng(20261019)
     x, y = [], []
     for record in train_records:
@@ -260,19 +369,9 @@ def train(records, tokens, alias_labels):
     model = ExtraTreesClassifier(n_estimators=96, max_leaf_nodes=384, max_features=.25,
                                 class_weight='balanced', n_jobs=4, random_state=20261019)
     model.fit(np.array(x), y)
-    tests = np.array([embed(r['raw']) for r in test_records])
+    tests = np.array([embed(r['raw']) for r in test_records], dtype=np.float32)
     expected = np.array([r['label'] for r in test_records])
-    predictions = model.predict_proba(tests)
     classes = list(model.classes_)
-    order = np.argsort(predictions,axis=1)
-    best = predictions[np.arange(len(tests)),order[:,-1]]
-    margin = best-predictions[np.arange(len(tests)),order[:,-2]]
-    accepted = (best >= .55) & (margin >= .15)
-    predicted = np.array(classes)[order[:,-1]]
-    metrics = dict(observations=len(tests), correct=int((predicted==expected).sum()), accuracy=float(accuracy_score(expected,predicted)),
-                   acceptedCorrect=int(((predicted==expected)&accepted).sum()), acceptedWrong=int(((predicted!=expected)&accepted).sum()),
-                   rejected=int((~accepted).sum()), split='ISL500 signers 4 and 5 held out; dictionary single-source classes not independently validated')
-    print('Validation', json.dumps(metrics), flush=True)
     # Each fixed-width node: feature, threshold, left, right, then top three class/probability pairs.
     nodes, roots = [], []
     for estimator in model.estimators_:
@@ -284,12 +383,17 @@ def train(records, tokens, alias_labels):
                 c=int(top[j]) if j<len(top) else 0;row += [c,float(value[c]) if j<len(top) else 0]
             nodes.append(row)
     binary=np.array(nodes,dtype='<f4');binary.tofile(OUT / 'isl-temporal-forest.bin')
+    # Report what ships: the compressed float32 forest, not the float64 estimator.
+    metrics = dict(**deployed_metrics(binary, roots, classes, tests, expected, .55, .15),
+                   split='ISL500 signers 4/5 and separate INCLUDE clips held out; dictionary single-source classes not independently validated',
+                   note='Exact shipped float32 forest.')
+    print('Validation', json.dumps(metrics), flush=True)
     covered=sorted(set(labels)|{alias for alias,canonical in alias_labels.items() if canonical in labels})
     info=dict(version=1,features='hand-temporal-stats-v1',featureLength=len(x[0]),nodeWidth=10,nodeCount=len(nodes),roots=roots,labels=classes,
               vocabulary=covered,aliases=alias_labels,missing=[t for t in tokens if t not in covered],threshold=.55,margin=.15,
               trainingObservations=len(train_records),sourceCounts=dict(counts),validation=metrics,
               weights='/models/isl-temporal-forest.bin',sha256=hashlib.sha256(binary.tobytes()).hexdigest(),
-              sources=[ISL,DICTIONARY],license='Mixed source terms: ISL500 research/academic only; dictionary MIT card and original ISLRTC attribution. See SIGN-DATA.md.')
+              sources=[ISL,DICTIONARY,'https://huggingface.co/datasets/ai4bharat/INCLUDE','https://www.kaggle.com/datasets/hariragavendramg/isl-canonical-motion-v1'],license='Mixed source terms: ISL500 research/academic only; dictionary MIT card and original ISLRTC attribution; INCLUDE CC BY 4.0; canonical release CC0 with original ISLRTC attribution. See SIGN-DATA.md.')
     (OUT / 'isl-temporal-model.json').write_text(json.dumps(info,indent=2)+'\n')
     (OUT / 'temporal-provenance.json').write_text(json.dumps([{k:v for k,v in r.items() if k!='raw'} for r in records],indent=2)+'\n')
     # Real held-out raw landmarks for end-to-end tracker-to-transcript replay.

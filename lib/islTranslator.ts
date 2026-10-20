@@ -1,5 +1,5 @@
 import { textToGloss } from '@/components/avatar/textToGloss'
-import { sanitizeTokens } from './islVocabulary'
+import { MAX_ONLINE_TEXT_LENGTH, sanitizeTokens } from './islVocabulary'
 
 export type TranslationMode = 'online' | 'offline'
 
@@ -10,6 +10,16 @@ export type TranslationResult = {
   glossText: string
   /** Which pipeline produced the result. */
   mode: TranslationMode
+  /** Input words the offline engine could not sign at all (unsupported scripts, emoji). */
+  skipped?: string[]
+}
+
+// Latin, Devanagari, general punctuation and whitespace are signable or safely
+// ignorable; any other script is reported back instead of disappearing.
+const UNSUPPORTED_CHARACTER = /[^\u0000-ɏऀ-ॿ -⁯\s]/
+
+export function unsupportedWords(text: string): string[] {
+  return text.split(/\s+/).filter((word) => UNSUPPORTED_CHARACTER.test(word))
 }
 
 const API_ENDPOINT = '/api/translate-isl'
@@ -28,17 +38,18 @@ export class TranslationAbortedError extends Error {
  * always returns tokens the avatar can play.
  */
 export function translateOffline(text: string): TranslationResult {
+  const skipped = unsupportedWords(text)
   try {
     const result = textToGloss(text) as { tokens?: string[]; glossText?: string }
     const tokens = sanitizeTokens(result?.tokens ?? [])
     if (tokens.length > 0) {
-      return { tokens, glossText: tokens.join(' '), mode: 'offline' }
+      return { tokens, glossText: tokens.join(' '), mode: 'offline', skipped }
     }
   } catch (error) {
     console.warn('[ISL] offline engine threw, falling back to raw text:', error)
   }
   const fallback = sanitizeTokens(text.toUpperCase().split(/\s+/))
-  return { tokens: fallback, glossText: fallback.join(' '), mode: 'offline' }
+  return { tokens: fallback, glossText: fallback.join(' '), mode: 'offline', skipped }
 }
 
 function isOffline(): boolean {
@@ -66,6 +77,8 @@ export async function translateToGloss(
 
   if (externalSignal?.aborted) throw new TranslationAbortedError()
   if (isOffline()) return translateOffline(trimmed)
+  // The online route rejects longer text; sign all of it offline instead of a prefix.
+  if (trimmed.length > MAX_ONLINE_TEXT_LENGTH) return translateOffline(trimmed)
 
   const controller = new AbortController()
   const abortForExternal = () => controller.abort()

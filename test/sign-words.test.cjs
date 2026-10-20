@@ -10,13 +10,13 @@ function load(name) {
   const exports = {}; cache.set(name, exports)
   vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../lib/sign', `${name}.ts`), 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
-  }).outputText, { exports, require: (name) => load(name.replace('./', '')), Error, Date, Float64Array })
+  }).outputText, { exports, require: (name) => load(name.replace(/^\.\//, '')), Error, Date, Float64Array })
   return exports
 }
 const { SequenceEncoder, sequenceMotion } = load('sequence-features')
 const { DtwSignRecognizer, dtwDistance } = load('dtw-classifier')
 const { WordRecorder } = load('word-recorder')
-const { emptyWordDataset, parseWordDataset, mergeWordDatasets } = load('word-data')
+const { emptyWordDataset, parseWordDataset, mergeWordDatasets, serializeWordDataset, WORD_LABELS, MAX_WORD_SAMPLES, MAX_WORD_FILE_BYTES } = load('word-data')
 const { SignStabilizer } = load('stabilizer')
 const { appendRecognizedToken } = load('transcript-tokens')
 const { sentenceRequest } = load('sentence')
@@ -81,7 +81,8 @@ test('different signing styles do not suppress an exact matching real trajectory
   r.replace({ ...emptyWordDataset(), samples: [sample('HELLO', 'normal', original), sample('HELLO', 'wide', wider(3)), sample('HELLO', 'wider', wider(5))] })
   const result = r.predictSequence(original, 1)
   assert.equal(result.label, 'HELLO')
-  assert.equal(result.confidence, 1)
+  // Stored templates are rounded to six decimals, so an exact repeat scores just under 1.
+  assert.ok(result.confidence > .9999)
 })
 
 test('mixed one/two-hand examples cannot enable a word without three matching hand-count recordings', () => {
@@ -125,6 +126,39 @@ test('word recorder captures only thirty real frames after 3–2–1', () => {
   assert.equal(r.sample.durationMs, 1972)
   assert.equal(parseWordDataset({ ...emptyWordDataset(), samples: [r.sample] }).samples.length, 1)
   assert.deepEqual(Array.from(r.sample.frames[15]), Array.from(sequence()[15]))
+})
+
+test('a motion captured on a slow camera can always be saved and exported', () => {
+  // 5 FPS: every frame gap is inside the recorder's stall limit.
+  const r = new WordRecorder('HELLO', 0, { hands: 1, id: 'slow-camera' })
+  for (let i = 0; i < 30; i++) r.update({ hands: [hand(i / 29)], timestamp: 3000 + i * 200 })
+  assert.equal(r.tick(9000).phase, 'complete')
+  assert.ok(r.sample, r.tick(9000).reason)
+  assert.equal(r.sample.durationMs, 5800)
+  const saved = parseWordDataset({ ...emptyWordDataset(), samples: [r.sample] })
+  assert.equal(JSON.parse(serializeWordDataset(saved)).samples.length, 1)
+})
+
+test('the largest library the parser accepts exports below the import limit and re-imports unchanged', () => {
+  const frames = sequence().map((frame) => frame.map((n, i) => n === 0 ? 0 : n + (i % 7) * 1e-9 - Math.PI * 1e-8))
+  const samples = []
+  for (const label of WORD_LABELS) for (let i = 0; i < MAX_WORD_SAMPLES; i++) samples.push({ ...sample(label, `${label}-${i}`, frames) })
+  const text = serializeWordDataset({ ...emptyWordDataset(), samples })
+  assert.ok(text.length < MAX_WORD_FILE_BYTES, `export is ${text.length} bytes`)
+  // A stored (rounded) library and its exported backup compare equal on re-import.
+  const stored = parseWordDataset({ ...emptyWordDataset(), samples: samples.slice(0, 20) })
+  const backup = JSON.parse(serializeWordDataset(stored))
+  assert.equal(mergeWordDatasets(stored, backup).samples.length, 20, 'Re-importing a backup is idempotent')
+})
+
+test('word files keep their source, license and attribution through import and export', () => {
+  const annotated = { ...dataset(), source: 'Community recordings', license: 'CC BY 4.0', attribution: 'Signer collective', ignored: 'x' }
+  const parsed = parseWordDataset(annotated)
+  assert.equal(parsed.license, 'CC BY 4.0'); assert.equal(parsed.source, 'Community recordings'); assert.equal(parsed.ignored, undefined)
+  const stored = mergeWordDatasets(emptyWordDataset(), annotated)
+  assert.ok(stored.samples.every((entry) => entry.license === 'CC BY 4.0' && entry.attribution === 'Signer collective'))
+  const exported = JSON.parse(serializeWordDataset(stored))
+  assert.ok(exported.samples.every((entry) => entry.source === 'Community recordings'))
 })
 
 test('missing hands, a frame stall, still poses and timeout cannot save partial or invented words', () => {

@@ -1,5 +1,7 @@
-import { NORMALIZATION } from './features'
-import { parseDataset } from './knn-classifier'
+import { featureHandCount, NORMALIZATION } from './features'
+import { fetchWithDeadline } from './fetch-deadline'
+import { MAX_RECOGNITION_SAMPLES, MIN_SAMPLES_PER_LABEL, parseDataset } from './knn-classifier'
+import { readProvenance, sampleProvenance } from './provenance'
 import type { SignDataset, SignSample } from './types'
 
 export const SAMPLE_DATABASE = 'yap-render-sign'
@@ -10,16 +12,17 @@ const CHANGE = 'yap-render-sign-samples-changed'
 
 export function emptyDataset(): SignDataset { return { version: 1, normalization: NORMALIZATION, samples: [] } }
 
-/** Identical reimports are idempotent; conflicting IDs abort the entire import. */
+/** Identical reimports are idempotent; conflicting IDs abort the entire import.
+ * Each added sample keeps its file's license, source and attribution. */
 export function mergeDatasets(current: SignDataset, incoming: SignDataset): SignDataset {
-  const previous = parseDataset(current), next = parseDataset(incoming)
+  const previous = parseDataset(current), next = parseDataset(incoming), origin = sampleProvenance(next)
   const records = new Map(previous.samples.map((sample) => [sample.id, sample]))
   for (const sample of next.samples) {
     const existing = records.get(sample.id)
     if (existing && (existing.label !== sample.label || existing.features.some((n, index) => n !== sample.features[index]))) throw new Error(`Sample ID “${sample.id}” already contains a different pose. No samples were changed.`)
-    if (!existing) records.set(sample.id, sample)
+    if (!existing) records.set(sample.id, { ...origin, ...sample })
   }
-  return parseDataset({ ...emptyDataset(), samples: [...records.values()] })
+  return parseDataset({ ...emptyDataset(), ...readProvenance(previous), samples: [...records.values()] })
 }
 
 function openDatabase(): Promise<IDBDatabase> {
@@ -76,8 +79,9 @@ async function transaction(mode: IDBTransactionMode, mutate?: (current: SignData
 }
 
 export function readStoredDataset() { return transaction('readonly') }
-export function addStoredSamples(samples: SignSample[]) {
-  const incoming = parseDataset({ ...emptyDataset(), samples })
+/** Takes new samples, or a whole imported file so its provenance stays with its samples. */
+export function addStoredSamples(input: SignSample[] | SignDataset) {
+  const incoming = parseDataset(Array.isArray(input) ? { ...emptyDataset(), samples: input } : input)
   return transaction('readwrite', (current) => mergeDatasets(current, incoming))
 }
 export function removeStoredSamples(ids: string[]) {
@@ -93,42 +97,44 @@ export function subscribeSampleChanges(onChange: () => void) {
   return () => { window.removeEventListener(CHANGE, onChange); window.removeEventListener('focus', onChange); channel?.close() }
 }
 
+// The bundled library is fetched once per page. Focus and library refreshes
+// reuse it, so going offline later never drops the loaded baseline.
+let bundledSamples: Promise<SignDataset> | null = null
+function readBundledDataset() {
+  bundledSamples ??= fetchWithDeadline('/models/isl-samples.json', async (response) => {
+    if (!response.ok) throw new Error('Bundled samples unavailable; using device samples only.')
+    return parseDataset(await response.json())
+  }, 'Bundled samples took too long to load; using device samples only.')
+  // A failed attempt is retried on the next refresh instead of being cached.
+  bundledSamples.catch(() => { bundledSamples = null })
+  return bundledSamples
+}
+
 export async function readRecognitionDataset() {
-  const results = await Promise.allSettled([
-    fetch('/models/isl-samples.json', { cache: 'no-store' }).then(async (response) => {
-      if (!response.ok) throw new Error('Bundled samples unavailable; using device samples only.')
-      return parseDataset(await response.json())
-    }),
-    readStoredDataset(),
-  ])
+  const results = await Promise.allSettled([readBundledDataset(), readStoredDataset()])
   const bundled = results[0].status === 'fulfilled' ? results[0].value : emptyDataset()
   const local = results[1].status === 'fulfilled' ? results[1].value : emptyDataset()
   const warnings = results.filter((r) => r.status === 'rejected').map((r) => r.status === 'rejected' ? (r.reason instanceof Error ? r.reason.message : 'Sample storage unavailable.') : '')
   return { dataset: recognitionDataset(bundled, local), warning: warnings.join(' ') }
 }
 
-/** Personal labels take precedence; the bundled library must not exhaust the
- * user's 5,000-pose import limit or make a full device library fail to load. */
+/** Personal samples replace bundled ones only for the same label and hand count
+ * (with at least three of them); every other bundled sign is kept, so a full
+ * device library never removes unrelated built-in coverage. */
 export function recognitionDataset(bundled: SignDataset, local: SignDataset): SignDataset {
   const counts = new Map<string, number>()
-  local.samples.forEach((sample) => counts.set(sample.label, (counts.get(sample.label) ?? 0) + 1))
+  const group = (sample: SignSample) => `${sample.label}:${featureHandCount(sample.features)}`
+  local.samples.forEach((sample) => counts.set(group(sample), (counts.get(group(sample)) ?? 0) + 1))
   const ids = new Set(local.samples.map((sample) => sample.id))
-  const baseline = bundled.samples.filter((sample) => (counts.get(sample.label) ?? 0) < 3 && !ids.has(sample.id))
-  // Round-robin labels so a nearly full device library retains coverage first.
-  const groups = new Map<string, SignSample[]>()
-  baseline.forEach((sample) => groups.set(sample.label, [...(groups.get(sample.label) ?? []), sample]))
-  const ordered: SignSample[] = []
-  for (let index = 0; index < Math.max(0, ...[...groups.values()].map((group) => group.length)); index++) {
-    groups.forEach((group) => { if (group[index]) ordered.push(group[index]) })
-  }
-  return parseDataset({ ...emptyDataset(), samples: [...local.samples, ...ordered.slice(0, Math.max(0, 5000 - local.samples.length))] })
+  const baseline = bundled.samples.filter((sample) => (counts.get(group(sample)) ?? 0) < MIN_SAMPLES_PER_LABEL && !ids.has(sample.id))
+  return parseDataset({ ...emptyDataset(), samples: [...local.samples, ...baseline] }, MAX_RECOGNITION_SAMPLES)
 }
 
-export function downloadDataset(dataset: SignDataset) {
+export function downloadDataset(dataset: SignDataset, fileName = 'isl-samples.json') {
   const valid = parseDataset(dataset)
   const url = URL.createObjectURL(new Blob([JSON.stringify(valid, null, 2)], { type: 'application/json' }))
   const link = document.createElement('a')
-  link.href = url; link.download = 'isl-samples.json'; link.style.display = 'none'
+  link.href = url; link.download = fileName; link.style.display = 'none'
   document.body.appendChild(link); link.click(); link.remove()
   window.setTimeout(() => URL.revokeObjectURL(url), 1000)
 }

@@ -3,22 +3,25 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { AnimatePresence, LayoutGroup, motion, useMotionValue, useSpring, useTransform, type MotionValue } from 'motion/react'
 import { usePrefersReducedMotion } from '@/lib/sign/use-reduced-motion'
-import { AudioLines, Hand, House, Route } from 'lucide-react'
+import { AudioLines, Hand, Route, Users } from 'lucide-react'
 import { warmSignModel, type PortalOrigin } from '@/lib/sign/use-sign-mode'
 import { signPortalOrigin } from '@/lib/sign/portal'
 
 const items = [
-  { id: 'home', label: 'Home', icon: House, target: 'top' },
-  { id: 'speak', label: 'Speak → Sign', icon: AudioLines, target: 'try-it' },
+  // Speak → Sign controls the avatar demo but scrolls to the whole hero, so the
+  // demo sits below the page header instead of against the top edge.
+  { id: 'speak', label: 'Speak → Sign', icon: AudioLines, target: 'try-it', scrollTarget: 'top' },
   { id: 'sign', label: 'Sign → Text', icon: Hand, target: null },
   { id: 'how', label: 'How it works', icon: Route, target: 'how-it-works' },
+  // Opens the About Us dialog; its section (#about) marks the item active while in view.
+  { id: 'about', label: 'About us', icon: Users, target: 'about' },
 ] as const
 type ItemId = typeof items[number]['id']
 
-export function Dock({ signActive, cameraLive, onSign, onExit }: {
-  signActive: boolean; cameraLive: boolean; onSign: (origin: PortalOrigin) => void; onExit: () => void
+export function Dock({ signActive, cameraLive, onSign, onExit, onAbout }: {
+  signActive: boolean; cameraLive: boolean; onSign: (origin: PortalOrigin) => void; onExit: () => void; onAbout: () => void
 }) {
-  const [section, setSection] = useState<ItemId>('home')
+  const [section, setSection] = useState<ItemId>('speak')
   const [finePointer, setFinePointer] = useState(false)
   const pointerX = useMotionValue(Infinity)
   const reduced = usePrefersReducedMotion()
@@ -30,12 +33,11 @@ export function Dock({ signActive, cameraLive, onSign, onExit }: {
     update(); query.addEventListener('change', update)
     const spy = () => {
       const story = document.getElementById('sign-story')?.getBoundingClientRect()
+      const reached = (id: string) => (document.getElementById(id)?.getBoundingClientRect().top ?? Infinity) < innerHeight * .5
       if (story && story.top < innerHeight * .5 && story.bottom > innerHeight * .5) setSection('sign')
-      else if ((document.getElementById('how-it-works')?.getBoundingClientRect().top ?? Infinity) < innerHeight * .5) setSection('how')
-      else {
-        const hero = document.getElementById('top')?.getBoundingClientRect()
-        setSection(hero && hero.top < -80 ? 'speak' : 'home')
-      }
+      else if (reached('about')) setSection('about')
+      else if (reached('how-it-works')) setSection('how')
+      else setSection('speak')
     }
     spy(); window.addEventListener('scroll', spy, { passive: true })
     return () => { query.removeEventListener('change', update); window.removeEventListener('scroll', spy) }
@@ -46,12 +48,24 @@ export function Dock({ signActive, cameraLive, onSign, onExit }: {
       onSign(signPortalOrigin())
       return
     }
-    if (signActive) {
-      onExit()
-      requestAnimationFrame(() => buttons.current[items.indexOf(item)]?.focus({ preventScroll: true }))
+    if (item.id === 'about') {
+      // Leave sign mode first; the dialog opens after its focus return has run.
+      if (signActive) { onExit(); requestAnimationFrame(onAbout) }
+      else onAbout()
+      return
     }
     setSection(item.id)
-    document.getElementById(item.target!)?.scrollIntoView({ behavior: reduced ? 'instant' : 'smooth', block: 'start' })
+    const scroll = () => document.getElementById(('scrollTarget' in item ? item.scrollTarget : item.target)!)?.scrollIntoView({ behavior: reduced ? 'instant' : 'smooth', block: 'start' })
+    if (signActive) {
+      onExit()
+      // Scroll once the stage has left its fixed PiP and the page layout is back.
+      requestAnimationFrame(() => {
+        buttons.current[items.indexOf(item)]?.focus({ preventScroll: true })
+        requestAnimationFrame(scroll)
+      })
+      return
+    }
+    scroll()
   }
 
   const onKeyDown = (event: KeyboardEvent, index: number) => {
@@ -98,7 +112,8 @@ function DockItem({ item, index, active, compact, live, pointerX, magnify, reduc
   const warm = () => { if (item.id === 'sign') warmSignModel() }
 
   return <motion.button layout={!reduced} type="button" ref={buttonRef} className={`dock-item dock-${item.id}`}
-    aria-label={item.label} aria-current={active ? 'page' : undefined} aria-controls={item.id === 'sign' ? 'sign-stage' : item.target!}
+    aria-label={item.label} aria-current={active ? 'page' : undefined} aria-controls={item.id === 'sign' ? 'sign-stage' : item.id === 'about' ? undefined : item.target!}
+    aria-haspopup={item.id === 'about' ? 'dialog' : undefined}
     onClick={() => { setPressed((value) => value + 1); onClick() }} onKeyDown={onKeyDown}
     onPointerEnter={() => { setHovered(true); warm() }} onPointerLeave={() => setHovered(false)}
     onFocus={() => { setHovered(true); warm() }} onBlur={() => setHovered(false)} onTouchStart={warm}

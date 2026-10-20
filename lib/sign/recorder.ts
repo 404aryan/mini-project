@@ -1,4 +1,4 @@
-import { extractFeatures, featureHandCount } from './features'
+import { extractFeatures, extractRelation, featureHandCount } from './features'
 import { STATIC_LABELS } from './knn-classifier'
 import type { SignFrame, SignSample } from './types'
 
@@ -53,7 +53,8 @@ export class SampleRecorder {
     this.reason = 'Steady · collecting real samples'
     if (frame.timestamp - this.lastCapture >= 250) {
       this.lastCapture = frame.timestamp
-      this.samples.push({ id: `${this.options.batchId}-${this.samples.length + 1}`, label: this.label, features, recordedAt: (this.options.recordedAt ?? Date.now)() })
+      const relation = extractRelation(frame.hands)
+      this.samples.push({ id: `${this.options.batchId}-${this.samples.length + 1}`, label: this.label, features, ...(relation ? { relation } : {}), recordedAt: (this.options.recordedAt ?? Date.now)() })
     }
     return this.tick(frame.timestamp)
   }

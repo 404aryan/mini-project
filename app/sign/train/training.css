@@ -36,7 +36,7 @@
 .train-view-hint { position: absolute; display: flex; align-items: center; gap: 8px; left: 24px; bottom: 23px; max-width: calc(100% - 48px); padding: 9px 12px; border-radius: 8px; background: #172020bd; color: var(--background); font-size: .65rem; backdrop-filter: blur(8px); }
 .train-record-dot { display: inline-block; flex-shrink: 0; width: 8px; height: 8px; border-radius: 50%; background: var(--coral); }
 .train-countdown { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; background: #17202070; color: var(--background); pointer-events: none; }
-.train-countdown strong { font: 400 7rem 'DM Serif Display', Georgia, serif; line-height: 1; }
+.train-countdown strong { font: 400 7rem var(--font-dm-serif), Georgia, serif; line-height: 1; }
 .train-countdown > span { font-size: .8rem; }
 .train-record-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
 .train-record-controls > button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 12px 15px; border: 1px solid var(--border); border-radius: 8px; font-size: .69rem; font-weight: 650; cursor: pointer; }
@@ -57,7 +57,7 @@
 .training-studio button:focus-visible, .training-studio a:focus-visible, .training-studio select:focus-visible { outline: 2px solid var(--coral); outline-offset: 4px; }
 .train-empty { display: grid; justify-items: center; gap: 12px; margin-top: 24px; padding: 48px 20px; border: 1px dashed var(--border); border-radius: 14px; color: var(--ink-soft); text-align: center; }
 .train-empty svg { color: var(--coral); }
-.train-empty h3 { margin: 0; font: 400 1.8rem 'DM Serif Display', Georgia, serif; letter-spacing: -.04em; color: var(--foreground); }
+.train-empty h3 { margin: 0; font: 400 1.8rem var(--font-dm-serif), Georgia, serif; letter-spacing: -.04em; color: var(--foreground); }
 .train-empty p { max-width: 320px; margin: 0; font-size: .72rem; line-height: 1.7; }
 .train-sample-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 13px; margin-top: 24px; }
 .train-sample-card { min-width: 0; padding: 8px 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: #fffefa80; }

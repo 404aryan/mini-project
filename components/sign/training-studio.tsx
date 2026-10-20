@@ -12,6 +12,7 @@ import { addStoredSamples, downloadDataset, emptyDataset, MAX_SAMPLE_FILE_BYTES,
 import { createHandOverlay } from '@/lib/sign/hand-overlay'
 import { SampleRecorder, type RecordingSnapshot } from '@/lib/sign/recorder'
 import type { SignSample } from '@/lib/sign/types'
+import { useUnsavedGuard } from '@/lib/sign/use-unsaved-guard'
 import { HandOverlay } from './hand-overlay'
 import { SamplePreview } from './sample-preview'
 
@@ -50,6 +51,7 @@ export function TrainingStudio() {
   const labelButtons = useRef<(HTMLButtonElement | null)[]>([])
   const live = camera.status === 'live'
   const busy = !!recording || saving || pending.length > 0
+  const confirmLeave = useUnsavedGuard(pending.length > 0)
   const counts = useMemo(() => {
     const result = new Map<string, number>()
     library.dataset.samples.forEach((sample) => result.set(sample.label, (result.get(sample.label) ?? 0) + 1))
@@ -69,6 +71,7 @@ export function TrainingStudio() {
     recorderRef.current = null; setRecording(null); setNotice(message)
   }, [])
   const stopCamera = () => { cancelRecording(); camera.close() }
+  const leave = (event: { preventDefault(): void }) => { if (confirmLeave(event)) stopCamera() }
 
   useEffect(() => {
     const suspend = () => cancelRecording('Recording cancelled while the page was away. Saved samples are unchanged.')
@@ -160,8 +163,18 @@ export function TrainingStudio() {
     finally { if (mounted.current) setSaving(false) }
   }
   const exportSamples = () => {
-    try { downloadDataset(mergeDatasets(library.dataset, { ...emptyDataset(), samples: pending })); setNotice('Exported isl-samples.json. Keep this file as a backup of your landmark samples.') }
-    catch (error) { setNotice(error instanceof Error ? error.message : 'Could not export the sample file.') }
+    try {
+      let merged = library.dataset, skipped = false
+      try { merged = mergeDatasets(library.dataset, { ...emptyDataset(), samples: pending }) } catch { skipped = pending.length > 0 }
+      downloadDataset(merged)
+      setNotice(skipped ? 'Exported your saved samples. The unsaved round conflicts with them, so export it separately.' : 'Exported isl-samples.json. Keep this file as a backup of your landmark samples.')
+    } catch (error) { setNotice(error instanceof Error ? error.message : 'Could not export the sample file.') }
+  }
+  // Exports only the unsaved round, so it can be recovered even when it
+  // conflicts with the stored library.
+  const exportPending = () => {
+    try { downloadDataset({ ...emptyDataset(), samples: pending }, 'isl-samples-unsaved.json'); setNotice('Exported the unsaved round as isl-samples-unsaved.json. Import it later to add these poses.') }
+    catch (error) { setNotice(error instanceof Error ? error.message : 'Could not export the unsaved round.') }
   }
   const openCamera = () => {
     if (camera.status === 'primer') camera.acceptPrivacy()
@@ -176,8 +189,8 @@ export function TrainingStudio() {
   const [cameraTitle, cameraDescription] = cameraCopy[camera.status]
 
   return <main className="training-studio">
-    <header className="train-header"><Link href="/" className="brand" onClick={stopCamera}><Hand size={21} /><span>yap &amp; render</span></Link><span className="train-beta">Training Studio · Beta</span><Link className="train-back" href="/?mode=sign" onClick={stopCamera}><ArrowLeft size={15} /> Live recognition</Link></header>
-    <nav className="train-vocabulary-nav" aria-label="Training vocabulary"><Link href="/sign/train" aria-current="page">Letters &amp; numbers</Link><Link href="/sign/train/words" onClick={stopCamera}>Words <span>Beta</span></Link></nav>
+    <header className="train-header"><Link href="/" className="brand" onClick={leave}><Hand size={21} /><span>yap &amp; render</span></Link><span className="train-beta">Training Studio · Beta</span><Link className="train-back" href="/?mode=sign" onClick={leave}><ArrowLeft size={15} /> Live recognition</Link></header>
+    <nav className="train-vocabulary-nav" aria-label="Training vocabulary"><Link href="/sign/train" aria-current="page">Letters &amp; numbers</Link><Link href="/sign/train/words" onClick={leave}>Words <span>Beta</span></Link></nav>
     <div className="train-heading"><p className="eyebrow"><span className="eyebrow-dot" /> A vocabulary shaped by you</p><h1>Your hands.<br /><em>Your vocabulary.</em></h1><p>Choose an ISL sign you know. Hold it, record it, make it yours.<br />Your camera stays private. Your samples stay on this device.</p></div>
     <div className="train-stats" aria-label="Training library summary"><span><strong>{library.dataset.samples.length}</strong> saved poses</span><span><strong>{trained} / 36</strong> labels ready</span><span><ShieldCheck size={15} /> Landmarks only · no video stored</span></div>
     {library.error && <div className="train-storage-error" role="status"><p>{library.error} Your previously saved data has not been replaced.</p><button type="button" onClick={() => { void library.refresh() }}><RotateCcw size={13} /> Retry storage</button></div>}
@@ -204,7 +217,7 @@ export function TrainingStudio() {
         <div className="train-record-controls"><button type="button" className="train-record-button" onClick={recording ? () => cancelRecording() : startRecording} disabled={saving || (!recording && (!live || model !== 'ready' || library.loading || pending.length > 0))}>{recording ? <Square size={14} /> : <span className="train-record-dot" />}{recording ? 'Cancel round' : `Record ${label} samples`}</button>{camera.active && <button type="button" className="train-camera-stop" onClick={stopCamera}><CameraOff size={14} /> Stop camera</button>}<span className="train-small">3–2–1, then up to 12 steady samples.</span></div>
         {recording?.phase === 'recording' && <progress className="train-record-progress" aria-label="Samples collected this round" max={recording.target} value={recording.count} />}
         <p className="train-notice" role="status">{saving ? 'Saving changes on this device…' : notice}</p>
-        {pending.length > 0 && !saving && <div className="train-unsaved"><strong>{pending.length} poses waiting to be saved</strong><button type="button" onClick={() => { void saveBatch(pending) }}>Retry save</button><button type="button" onClick={exportSamples}>Export unsaved poses</button><button type="button" onClick={() => { setPending([]); setNotice('Unsaved round discarded. Saved samples are unchanged.') }}>Discard unsaved round</button></div>}
+        {pending.length > 0 && !saving && <div className="train-unsaved"><strong>{pending.length} poses waiting to be saved</strong><button type="button" onClick={() => { void saveBatch(pending) }}>Retry save</button><button type="button" onClick={exportPending}>Export unsaved poses</button><button type="button" onClick={() => { setPending([]); setNotice('Unsaved round discarded. Saved samples are unchanged.') }}>Discard unsaved round</button></div>}
       </section>
     </div>
     <section className="train-library" aria-labelledby="train-library-title"><div className="train-library-heading"><div><p className="eyebrow">03 / Keep the good poses</p><h2 id="train-library-title">Your <em>{label}</em> samples <span>{selected.length}</span></h2><p className="train-small">Landmark previews, not photographs. Remove a pose if it doesn’t match your intended sign.</p></div><div className="train-file-actions"><button type="button" disabled={library.loading || saving || (!library.dataset.samples.length && !pending.length)} onClick={exportSamples}><Download size={14} /> Export JSON</button><label className={`sign-import-button ${busy ? 'is-disabled' : ''}`}><Upload size={14} /> Import JSON<input type="file" accept="application/json,.json" aria-label="Import training sample JSON" disabled={busy || library.loading} onChange={async (event) => {
@@ -214,7 +227,7 @@ export function TrainingStudio() {
       try {
         if (file.size > MAX_SAMPLE_FILE_BYTES) throw new Error('Choose a JSON sample file smaller than 25 MB.')
         const incoming = parseDataset(JSON.parse(await file.text()))
-        await addStoredSamples(incoming.samples); await library.refresh()
+        await addStoredSamples(incoming); await library.refresh()
         if (mounted.current) setNotice(`Imported ${incoming.samples.length} poses. Matching IDs were kept once; existing poses were preserved.`)
       } catch (error) { if (mounted.current) setNotice(error instanceof Error ? error.message : 'Import failed. Saved samples are unchanged.') }
       finally { if (mounted.current) setSaving(false) }
@@ -222,6 +235,6 @@ export function TrainingStudio() {
       {library.loading ? <p className="train-empty">Loading your saved samples…</p> : !selected.length ? <div className="train-empty"><Hand size={28} strokeWidth={1.3} /><h3>A little practice starts here.</h3><p>Record your first {label} round. Only your real hand landmarks will appear here.</p></div> : <div className="train-sample-grid">{visible.map((sample, index) => <article className="train-sample-card" key={sample.id}><SamplePreview sample={sample} /><div><span>Pose {String(selected.length - page * 12 - index).padStart(2, '0')}</span><button type="button" disabled={busy} aria-label={`Delete ${label} sample ${selected.length - page * 12 - index}`} onClick={() => { void remove([sample]) }}><Trash2 size={13} /></button></div><small>{sample.recordedAt ? new Date(sample.recordedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Imported landmark pose'}</small></article>)}</div>}
       <div className="train-library-footer"><div>{selected.length > 0 && <button type="button" disabled={busy} onClick={() => { void remove(selected) }}><Trash2 size={13} /> Delete all {label} samples</button>}{undo.length > 0 && <button type="button" disabled={busy} onClick={() => { void undoDelete() }}><Undo2 size={13} /> Undo last deletion</button>}</div>{pages > 1 && <div className="train-pagination"><button type="button" aria-label="Previous sample page" disabled={page === 0} onClick={() => setPage((n) => n - 1)}><ChevronLeft size={16} /></button><span>{page + 1} / {pages}</span><button type="button" aria-label="Next sample page" disabled={page >= pages - 1} onClick={() => setPage((n) => n + 1)}><ChevronRight size={16} /></button></div>}</div>
     </section>
-    <footer className="train-footer"><span><ShieldCheck size={14} /> Stored in this browser · export a backup before clearing site data</span><Link href="/?mode=sign" onClick={stopCamera}>Try your vocabulary live <ArrowLeft size={14} /></Link></footer>
+    <footer className="train-footer"><span><ShieldCheck size={14} /> Stored in this browser · export a backup before clearing site data</span><Link href="/?mode=sign" onClick={leave}>Try your vocabulary live <ArrowLeft size={14} /></Link></footer>
   </main>
 }

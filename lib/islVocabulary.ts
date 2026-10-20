@@ -10,6 +10,9 @@
  * `components/avatar/animations/words.js`. Multi-word signs use an underscore
  * (THANK_YOU, HOW_MUCH, COME_IN, …) exactly as the animation module exports them.
  */
+/** Longest text the online (Gemini) route accepts; longer text uses the offline engine whole. */
+export const MAX_ONLINE_TEXT_LENGTH = 600
+
 export const SUPPORTED_TOKENS: readonly string[] = [
   'YOU', 'HOME', 'TIME', 'PERSON', 'HELLO', 'HELP', 'PLEASE', 'SORRY', 'WELCOME', 'GOOD', 'BAD', 'STOP', 'WAIT',
   'COME', 'GO', 'WANT', 'NEED', 'LIKE', 'KNOW', 'UNDERSTAND', 'ASK', 'DRINK', 'EAT', 'WATER', 'GIVE', 'TAKE',
@@ -30,9 +33,14 @@ export const SUPPORTED_TOKENS: readonly string[] = [
 
 export const SUPPORTED_TOKEN_SET: ReadonlySet<string> = new Set(SUPPORTED_TOKENS)
 
-/** A single A–Z letter, i.e. a fingerspelling instruction. */
+/**
+ * A fingerspelling/number instruction: one letter or digit ("B", "7"), or a
+ * hyphenated run spelled character by character ("A-M-I-T", "1-1-2"). The
+ * hyphen form keeps a spelled I distinct from the pronoun sign I, and keeps a
+ * spelled word such as G-O distinct from the GO sign.
+ */
 export function isFingerspellToken(token: string): boolean {
-  return /^[A-Z]$/.test(token)
+  return /^[A-Z0-9](-[A-Z0-9])*$/.test(token)
 }
 
 /** True when `AvatarPlayer` can play this token directly without translating. */
@@ -40,24 +48,29 @@ export function isPlayableToken(token: string): boolean {
   return SUPPORTED_TOKEN_SET.has(token) || isFingerspellToken(token)
 }
 
+/** Spell a word or number character by character, e.g. "Amit" -> "A-M-I-T". Empty when nothing is spellable. */
+export function spellToken(text: string): string {
+  return Array.from(text.toUpperCase().replace(/[^A-Z0-9]/g, '')).join('-')
+}
+
 /**
  * Coerce an arbitrary token list (from Gemini or the offline engine) into tokens
- * the avatar can always play: supported signs are kept as-is; anything else is
- * expanded into individual letters for fingerspelling. Never throws.
+ * the avatar can always play: supported signs and spelling tokens are kept
+ * as-is; anything else is spelled with its letters and digits. Tokens with
+ * nothing playable (punctuation, "_") are dropped. Never throws.
  */
 export function sanitizeTokens(input: unknown): string[] {
   if (!Array.isArray(input)) return []
   const output: string[] = []
   for (const entry of input) {
-    const token = String(entry ?? '').toUpperCase().replace(/[^A-Z_]/g, '')
-    if (!token) continue
-    if (SUPPORTED_TOKEN_SET.has(token) || token.length === 1) {
-      output.push(token)
+    const raw = String(entry ?? '').toUpperCase().trim()
+    const compact = raw.replace(/\s+/g, '_')
+    if (isPlayableToken(compact)) {
+      output.push(compact)
       continue
     }
-    for (const letter of token.replace(/_/g, '')) {
-      if (letter) output.push(letter)
-    }
+    const spelled = spellToken(raw)
+    if (spelled) output.push(spelled)
   }
   return output
 }

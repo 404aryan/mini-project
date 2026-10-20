@@ -7,10 +7,11 @@ import { Check, Copy, Delete, Pencil, Space, Sparkles, Square, Trash2, Volume2 }
 import { speakText, speechVoices, type SpeechLanguage } from '@/lib/sign/tts'
 import type { TranscriptToken } from '@/lib/sign/types'
 
-export function Transcript({ active, tokens, onSpace, onBackspace, onClear, onEdit, wordMode = false }: {
+export function Transcript({ active, tokens, onSpace, onBackspace, onClear, onEdit, wordMode = false, feedback, candidates = [], onAcceptCandidate }: {
   active: boolean; tokens: TranscriptToken[]; onSpace: () => void; onBackspace: () => void
   onClear: () => void; onEdit: (text: string) => void
   wordMode?: boolean
+  feedback?: string; candidates?: { label: string; confidence: number }[]; onAcceptCandidate?: (label: string) => void
 }) {
   const reduced = usePrefersReducedMotion()
   const raw = tokens.map((t) => t.text).join('')
@@ -105,8 +106,10 @@ export function Transcript({ active, tokens, onSpace, onBackspace, onClear, onEd
     <div className="sign-raw-line" aria-label="Raw transcript">
       <AnimatePresence initial={false}>{tokens.map((token) => <motion.span key={token.id} layout={!reduced} layoutId={reduced ? undefined : `sign-token-${token.id}`} className="sign-letter"
         initial={{ opacity: 0, scale: reduced ? 1 : .75 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: reduced ? 1 : .7 }} transition={{ type: 'spring', stiffness: 260, damping: 22 }}>{token.text === ' ' ? '\u00a0' : token.text}</motion.span>)}</AnimatePresence>
-      {!tokens.length && <span className="sign-transcript-placeholder">{wordMode ? 'Sign a trained word, then hold its finish.' : 'Hold a trained sign to add a letter.'}</span>}
+      {!tokens.length && <span className="sign-transcript-placeholder">{wordMode ? 'Your recognized words will appear here.' : 'Your recognized letters will appear here.'}</span>}
     </div>
+    {feedback && <div className="sign-transcript-feedback" role="status"><span className="dock-live-dot" />{feedback}</div>}
+    {wordMode && candidates.length > 0 && onAcceptCandidate && <div className="sign-suggestions" aria-label="Possible sign matches"><span>Possible match · tap to add</span>{candidates.map(candidate => <button key={candidate.label} type="button" onClick={() => onAcceptCandidate(candidate.label)}>{candidate.label}<small>{Math.round(candidate.confidence*100)}% match</small></button>)}</div>}
     <span className="sign-sr-only" aria-live="polite" aria-atomic="true">{raw || 'Transcript empty'}</span>
     <div className="sign-text-actions" role="group" aria-label="Transcript controls">
       <button type="button" onClick={onSpace} disabled={!raw || tokens.length >= 1200}><Space size={14} /> Space</button>

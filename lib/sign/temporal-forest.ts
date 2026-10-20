@@ -3,7 +3,7 @@ import { TEMPORAL_FEATURE_SIZE } from './temporal-features'
 export type TemporalModel = {
   version: 1; features: 'hand-temporal-stats-v1'; featureLength: number; nodeWidth: number; nodeCount: number
   roots: number[]; labels: string[]; vocabulary: string[]; threshold: number; margin: number; weights: string
-  trainingObservations: number; missing: string[]
+  trainingObservations: number; missing: string[]; sha256?: string
 }
 export type WordCandidate = { label: string; confidence: number }
 export type ForestResult = { label: string | null; confidence: number; candidates: WordCandidate[] }

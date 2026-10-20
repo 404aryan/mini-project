@@ -38,6 +38,26 @@ def features(hands):
     return [round(v, 6) for v in vector] + [0.] * (126 - len(vector))
 
 
+def relation(hands):
+    """Second wrist relative to the first (ordered by x), in mean hand-size units.
+
+    Hand shapes are wrist-centred, so this keeps two-hand signs that differ only
+    in where the hands are apart. Matches extractRelation() in lib/sign/features.ts.
+    """
+    if len(hands) != 2:
+        return None
+    ordered = [np.asarray(hand, dtype=float) for hand in sorted(hands, key=lambda h: h[0][0])]
+    scale = np.mean([np.linalg.norm(hand - hand[0], axis=1).max() for hand in ordered])
+    if scale < 1e-6:
+        return None
+    return [round(float(v), 6) for v in (ordered[1][0] - ordered[0][0]) / scale]
+
+
+def with_relation(sample, hands):
+    value = relation(hands)
+    return {**sample, 'relation': value} if value is not None else sample
+
+
 def build_static():
     archive = CACHE / 'isl-static.zip'
     if not archive.exists():
@@ -78,12 +98,12 @@ def build_static():
                 raise RuntimeError(f'Insufficient real poses for {label}: {counts}')
             for index, (name, vector, hands) in enumerate(train):
                 sample_id = f'isl-arikeri-v1-{label}-{index}'
-                samples.append(dict(id=sample_id, label=label, features=vector))
+                samples.append(with_relation(dict(id=sample_id, label=label, features=vector), hands))
                 # Explicit left-handed augmentation of a real observation.
-                mirrored = features([[[1-p[0], p[1], p[2]] for p in hand] for hand in hands])
-                samples.append(dict(id=sample_id+'-mirror', label=label, features=mirrored))
+                reflected = [[[1-p[0], p[1], p[2]] for p in hand] for hand in hands]
+                samples.append(with_relation(dict(id=sample_id+'-mirror', label=label, features=features(reflected)), reflected))
                 provenance.append(dict(id=sample_id, source=name))
-            evaluation.extend(dict(id=f'heldout-{label}-{i}', label=label, features=p[1]) for i, p in enumerate(heldout))
+            evaluation.extend(with_relation(dict(id=f'heldout-{label}-{i}', label=label, features=p[1]), p[2]) for i, p in enumerate(heldout))
             print(label, 'train', len(train)*2, 'heldout', len(heldout), 'hands', expected, flush=True)
     result = dict(version=1, normalization='wrist-maxdist-v1',
                   description='Real ISL image landmarks with left-handed augmentation; see SIGN-DATA.md.',
@@ -92,7 +112,10 @@ def build_static():
                   attribution='Prathum Arikeri; derived MediaPipe landmarks and horizontal reflections; SIGN-DATA.md', samples=samples)
     (ROOT / 'public/models/isl-samples.json').write_text(json.dumps(result, separators=(',', ':'))+'\n')
     (CACHE / 'static-heldout.json').write_text(json.dumps(dict(version=1, normalization='wrist-maxdist-v1', samples=evaluation)))
-    (CACHE / 'static-provenance.json').write_text(json.dumps(dict(source=SOURCE, sha256=hashlib.sha256(archive.read_bytes()).hexdigest(), samples=provenance), indent=2))
+    # The published provenance must always describe the published samples.
+    provenance_text = json.dumps(dict(source=SOURCE, sha256=hashlib.sha256(archive.read_bytes()).hexdigest(), samples=provenance), indent=2)
+    (CACHE / 'static-provenance.json').write_text(provenance_text)
+    (ROOT / 'public/models/static-provenance.json').write_text(provenance_text)
 
 
 if __name__ == '__main__':

@@ -12,6 +12,7 @@ import { HandOverlay } from './hand-overlay'
 import { Transcript } from './transcript'
 import { MAX_SAMPLE_FILE_BYTES } from '@/lib/sign/sample-store'
 import { appendRecognizedToken } from '@/lib/sign/transcript-tokens'
+import { MAX_WORD_FILE_BYTES } from '@/lib/sign/word-data'
 
 const messages = {
   primer: ['A little space for your hands.', 'Video never leaves your device; hand tracking runs locally. We only ask for your camera, never your microphone.'],
@@ -49,7 +50,13 @@ export function SignStage({ active, status, origin, attachVideo, onAccept, onRet
   const { model, snapshot } = recognition
   const dataset = recognition.dataset.kind === kind ? recognition.dataset : { ...recognition.dataset, loading: true, labels: 0, samples: 0, readySigns: [], error: '' }
   const words = kind === 'words'
-  useEffect(() => { if (new URLSearchParams(location.search).get('recognizer') === 'words') setKind('words') }, [])
+  useEffect(() => {
+    // The stage stays mounted, so Back/Forward must re-read the recognizer too.
+    const sync = () => setKind(new URLSearchParams(location.search).get('recognizer') === 'words' ? 'words' : 'static')
+    sync()
+    window.addEventListener('popstate', sync)
+    return () => window.removeEventListener('popstate', sync)
+  }, [])
   const chooseKind = (value: 'static' | 'words') => {
     setKind(value); setImportError('')
     const url = new URL(location.href)
@@ -107,12 +114,15 @@ export function SignStage({ active, status, origin, attachVideo, onAccept, onRet
   const handLocked = live && !!snapshot.label && (holding || snapshot.phase === 'committed')
   const trackingCopy = model === 'unavailable' ? 'Hand tracking unavailable · retry above'
     : model === 'loading' ? 'Warming up your hand tracker'
-    : !snapshot.handCount ? 'Bring your hands into frame'
     : dataset.loading ? 'Preparing sign recognition…'
     : !dataset.labels ? 'Recognition is taking a moment · retry below'
     : snapshot.phase === 'committed' ? `${snapshot.label} added · ${words ? 'lower your hands before the next word' : 'release or change sign'}`
-    : holding ? `Hold ${snapshot.label}${words ? ' at its finish' : ' steady'}`
-    : words ? 'Sign a supported word in about 2 seconds, then hold its finish. Lower hands between words.' : 'Keep the sign steady · check the supported signs below'
+    : !snapshot.handCount ? 'Bring your hands into frame'
+    : words && snapshot.label === 'YES' && holding ? 'Thumbs-up detected · keep it steady briefly'
+    : words && snapshot.activity === 'matching' ? 'Matching your sign…'
+    : words && snapshot.activity === 'collecting' ? 'Reading your movement · finish the sign, then lower your hands'
+    : holding ? `Hold ${snapshot.label} steady`
+    : words ? 'Sign once, then lower your hands. Possible matches appear below.' : 'Keep the sign steady · check the supported signs below'
   return <LayoutGroup id="sign-live"><motion.section ref={stageRef} id="sign-stage" className={`sign-stage ${live ? 'is-live' : ''} ${handLocked ? 'has-hand-lock' : ''}`}
     aria-labelledby="sign-stage-title" aria-hidden={!active} inert={!active}
     style={{ pointerEvents: active ? 'auto' : 'none', clipPath: reduced ? 'none' : portalClip }} initial={false}
@@ -165,7 +175,7 @@ export function SignStage({ active, status, origin, attachVideo, onAccept, onRet
       <span className="sign-frame-index" aria-hidden="true">01 / YOUR SIDE</span>
     </motion.div>
     <aside className={`sign-dataset-notice ${dataset.labels ? 'has-samples' : ''}`} aria-label="Recognition status">
-      <div><strong>{dataset.loading ? 'Getting recognition ready…' : dataset.labels ? `${dataset.labels} ${words ? 'ISL words' : 'ISL signs'} ready to recognize` : 'Recognition could not start'}</strong><p>{dataset.labels ? (words ? 'Sign in about 2 seconds, hold the finish briefly, then lower your hands.' : 'Keep both hands fully in view. Hold a supported sign steady until it appears in your text.') : dataset.loading ? 'Your built-in sign library is loading automatically.' : 'Please retry recognition. You can also use Edit text while it reconnects.'}</p>
+      <div><strong>{dataset.loading ? 'Getting recognition ready…' : dataset.labels ? `${dataset.labels} ${words ? 'words' : 'ISL signs'} ready to recognize` : 'Recognition could not start'}</strong><p>{dataset.labels ? (words ? 'Try YES: hold a thumbs-up for half a second. For moving signs, sign naturally, then lower your hands. You can confirm a possible match below.' : 'Keep both hands fully in view. Hold a supported sign steady until it appears in your text.') : dataset.loading ? 'Your built-in sign library is loading automatically.' : 'Please retry recognition. You can also use Edit text while it reconnects.'}</p>
         {dataset.labels > 0 && <details className="sign-ready-signs"><summary>See supported {words ? 'words' : 'letters & numbers'}</summary><p>{dataset.readySigns.join(' · ')}</p></details>}
         {!dataset.loading && !dataset.labels && <button type="button" className="sign-import-button" onClick={recognition.retry}><RotateCcw size={13} /> Retry recognition</button>}
         {dataset.error && <p className="sign-import-error" role="status">{dataset.error}</p>}
@@ -175,7 +185,7 @@ export function SignStage({ active, status, origin, attachVideo, onAccept, onRet
         event.target.value = ''
         if (!file) return
         try {
-          if (file.size > (words ? 12 * 1024 * 1024 : MAX_SAMPLE_FILE_BYTES)) throw new Error(`Choose a JSON file smaller than ${words ? 12 : 25} MB.`)
+          if (file.size > (words ? MAX_WORD_FILE_BYTES : MAX_SAMPLE_FILE_BYTES)) throw new Error(`Choose a JSON file smaller than ${words ? 64 : 25} MB.`)
           await recognition.importSamples(JSON.parse(await file.text())); setImportError('')
         } catch (error) { setImportError(error instanceof Error ? error.message : 'Sample file could not be read.') }
       }} /></label></div></details>
@@ -183,6 +193,9 @@ export function SignStage({ active, status, origin, attachVideo, onAccept, onRet
       {dataset.labels > 0 && <span className="sign-session-note">Built-in signs load automatically. Optional personal recordings stay on this device.</span>}
     </aside>
     <Transcript active={active} tokens={tokens} wordMode={words}
+      feedback={live ? trackingCopy : dataset.loading ? 'Preparing recognition…' : 'Start your camera above to recognize signs.'}
+      candidates={live && snapshot.phase !== 'committed' ? snapshot.candidates : []}
+      onAcceptCandidate={recognition.confirmCandidate}
       onSpace={() => setTokens((current) => current.length < 1200 ? [...current, { id: `manual-${++manualId.current}`, text: ' ' }] : current)}
       onBackspace={() => setTokens((current) => current.slice(0, -1))} onClear={() => setTokens([])}
       onEdit={(text) => setTokens(Array.from(text).slice(0, 1200).map((char) => ({ id: `manual-${++manualId.current}`, text: char })))} />

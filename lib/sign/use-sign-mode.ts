@@ -40,6 +40,22 @@ export function useSignMode({ surface = 'stage' }: { surface?: 'stage' | 'traini
     if (videoRef.current) videoRef.current.srcObject = null
   }, [])
 
+  // Both the immediate and the late (lazy stage) attachment use this, so a
+  // preview that cannot play always releases the camera and asks for a retry.
+  const playPreview = useCallback(async (video: HTMLVideoElement, stream: MediaStream, ticket: number) => {
+    if (video.srcObject !== stream) video.srcObject = stream
+    try {
+      await video.play()
+    } catch (error) {
+      // A newer load of the same element replaced this play() call.
+      if (error instanceof Error && error.name === 'AbortError') return
+      if (ticket !== generation.current) return
+      stopCamera()
+      setStatus('busy')
+      throw error
+    }
+  }, [stopCamera])
+
   const requestCamera = useCallback(async () => {
     stopCamera()
     if (!activeRef.current) return
@@ -74,10 +90,8 @@ export function useSignMode({ surface = 'stage' }: { surface?: 'stage' | 'traini
       const tracks = stream.getVideoTracks()
       if (!tracks.length || tracks.some((track) => track.readyState === 'ended')) { pause(); return }
       tracks.forEach((track) => { track.onended = pause; track.onmute = pause })
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-        await videoRef.current.play()
-      }
+      // Without a video yet, the lazily loaded stage attaches and plays it.
+      if (videoRef.current) await playPreview(videoRef.current, stream, ticket)
       if (ticket !== generation.current) return
       setStatus('live')
     } catch (error) {
@@ -87,7 +101,7 @@ export function useSignMode({ surface = 'stage' }: { surface?: 'stage' | 'traini
       setStatus(name === 'NotAllowedError' || name === 'SecurityError' ? 'denied'
         : name === 'NotFoundError' || name === 'OverconstrainedError' ? 'missing' : 'busy')
     }
-  }, [stopCamera])
+  }, [playPreview, stopCamera])
 
   const updateUrl = useCallback((sign: boolean) => {
     if (!pageMode) return
@@ -132,11 +146,8 @@ export function useSignMode({ surface = 'stage' }: { surface?: 'stage' | 'traini
 
   const attachVideo = useCallback((video: HTMLVideoElement | null) => {
     videoRef.current = video
-    if (video && streamRef.current) {
-      video.srcObject = streamRef.current
-      void video.play().catch(() => {})
-    }
-  }, [])
+    if (video && streamRef.current) void playPreview(video, streamRef.current, generation.current).catch(() => {})
+  }, [playPreview])
 
   useEffect(() => {
     const syncUrl = () => {
@@ -177,9 +188,12 @@ export function useSignMode({ surface = 'stage' }: { surface?: 'stage' | 'traini
     const escape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') close()
       if (event.key === 'Tab') {
-        const controls = Array.from(document.querySelectorAll<HTMLElement>('.sign-stage a[href], .sign-stage button:not(:disabled), .sign-stage input:not(:disabled), .sign-stage select:not(:disabled), .sign-stage textarea:not(:disabled), .mode-dock button')).filter((element) => element.getClientRects().length > 0)
+        const controls = Array.from(document.querySelectorAll<HTMLElement>('.sign-stage a[href], .sign-stage button:not(:disabled), .sign-stage input:not(:disabled), .sign-stage select:not(:disabled), .sign-stage textarea:not(:disabled), .sign-stage summary, .sign-stage [tabindex]:not([tabindex="-1"]), .mode-dock button')).filter((element) => element.getClientRects().length > 0)
         const index = controls.indexOf(document.activeElement as HTMLElement)
         if (!controls.length) return
+        // Focus on another control inside the stage or dock keeps normal tab order;
+        // only focus that escaped the dialog is pulled back in.
+        if (index === -1 && document.activeElement?.closest('.sign-stage, .mode-dock')) return
         if (event.shiftKey && index <= 0) { event.preventDefault(); controls[controls.length - 1].focus() }
         else if (!event.shiftKey && (index === controls.length - 1 || index === -1)) { event.preventDefault(); controls[0].focus() }
       }

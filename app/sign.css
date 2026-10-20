@@ -52,7 +52,7 @@
 .sign-scan-line { top: 90%; }
 .sign-camera-message { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 62px 28px 38px; text-align: center; }
 .sign-message-icon { display: grid; place-items: center; width: 50px; height: 50px; margin-bottom: 16px; border: 1px solid #d9ed6140; border-radius: 16px; color: var(--lime); background: #d9ed610a; }
-.sign-camera-message h3 { max-width: 480px; margin-bottom: 10px; font-family: 'DM Serif Display', Georgia, serif; font-weight: 400; font-size: clamp(1.6rem, 3vw, 2.5rem); letter-spacing: -.04em; line-height: 1.05; }
+.sign-camera-message h3 { max-width: 480px; margin-bottom: 10px; font-family: var(--font-dm-serif), Georgia, serif; font-weight: 400; font-size: clamp(1.6rem, 3vw, 2.5rem); letter-spacing: -.04em; line-height: 1.05; }
 .sign-camera-message p { max-width: 410px; margin-bottom: 20px; font-size: .76rem; line-height: 1.65; color: #f5f1e9a0; }
 .sign-camera-button { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 13px 19px; border: 0; border-radius: 999px; background: var(--lime); color: var(--foreground); font-size: .74rem; font-weight: 700; cursor: pointer; }
 .sign-camera-button:hover { background: var(--background); }
@@ -130,7 +130,7 @@
 .sign-transcript { max-width: 1080px; margin: 0 auto; padding: 20px 22px 12px; border: 1px solid var(--border); border-radius: 15px; background: #fffefa80; }
 .sign-transcript-heading { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
 .sign-transcript-heading .eyebrow { margin-bottom: 7px; font-size: .51rem; }
-.sign-transcript h3 { margin: 0; font: 400 1.55rem 'DM Serif Display', Georgia, serif; letter-spacing: -.04em; }
+.sign-transcript h3 { margin: 0; font: 400 1.55rem var(--font-dm-serif), Georgia, serif; letter-spacing: -.04em; }
 .sign-token-count { color: var(--ink-faint); font: .6rem ui-monospace, monospace; }
 .sign-raw-line { display: flex; flex-wrap: wrap; align-content: center; min-height: 72px; max-height: 170px; overflow-y: auto; padding: 14px 0; }
 .sign-letter { display: inline-block; white-space: pre; color: var(--foreground); font: 600 1.5rem ui-monospace, monospace; line-height: 1.5; }
@@ -141,7 +141,7 @@
 .sign-stage button:disabled { opacity: .45; cursor: not-allowed; }
 .sign-edit-label { display: block; margin-top: 16px; color: var(--ink-soft); font-size: .68rem; }
 .sign-edit-label > span { margin-left: 8px; color: var(--ink-faint); font-size: .6rem; }
-.sign-edit-label textarea { display: block; width: 100%; min-height: 80px; margin-top: 7px; padding: 12px; resize: vertical; border: 1px solid var(--border); border-radius: 8px; background: var(--background); color: var(--foreground); font: .9rem 'DM Sans', Arial, sans-serif; }
+.sign-edit-label textarea { display: block; width: 100%; min-height: 80px; margin-top: 7px; padding: 12px; resize: vertical; border: 1px solid var(--border); border-radius: 8px; background: var(--background); color: var(--foreground); font: .9rem var(--font-dm-sans), Arial, sans-serif; }
 .sign-output-actions { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
 .sign-output-actions > label { display: grid; gap: 6px; color: var(--ink-soft); font-size: .55rem; }
 .sign-output-actions select { width: 100%; min-height: 38px; max-width: 210px; padding: 7px; border: 1px solid var(--border); border-radius: 7px; background: var(--background); color: var(--foreground); font-size: .66rem; }
@@ -211,3 +211,8 @@
 .sign-ready-signs { margin-top: 8px; }
 .sign-personalize { align-self: start; }
 .sign-personalize .sign-dataset-actions { margin-top: 10px; }
+.sign-transcript-feedback { display: flex; align-items: center; gap: 8px; margin: 4px 0 15px; color: var(--ink-soft); font-size: .75rem; line-height: 1.5; }
+.sign-suggestions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 0; }
+.sign-suggestions > span { flex: 1 0 100%; color: var(--ink-soft); font-size: .7rem; }
+.sign-suggestions button { display: flex; align-items: center; gap: 9px; min-height: 44px; padding: 9px 12px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface); color: var(--foreground); cursor: pointer; font-size: .75rem; }
+.sign-suggestions small { color: var(--ink-soft); font-size: .6rem; }

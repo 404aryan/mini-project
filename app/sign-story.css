@@ -14,7 +14,7 @@
 .sign-story-beats { position: relative; height: 260px; padding: 0; margin: 0; list-style: none; }
 .sign-story-beat { position: absolute; top: 0; left: 0; right: 0; }
 .sign-story-beat-number { display: block; margin-bottom: 18px; color: var(--ink-faint); font: .58rem ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .045em; }
-.sign-story-beat h3, .sign-story-static-copy h3 { max-width: 350px; margin: 0 0 19px; font: 400 clamp(2.5rem, 3.75vw, 3.6rem)/.98 'DM Serif Display', Georgia, serif; letter-spacing: -.045em; }
+.sign-story-beat h3, .sign-story-static-copy h3 { max-width: 350px; margin: 0 0 19px; font: 400 clamp(2.5rem, 3.75vw, 3.6rem)/.98 var(--font-dm-serif), Georgia, serif; letter-spacing: -.045em; }
 .sign-story-beat p, .sign-story-static-copy > p { max-width: 350px; margin: 0 0 24px; color: var(--ink-soft); font-size: .85rem; line-height: 1.7; }
 .sign-story-beat-tag { display: inline-flex; padding: 6px 9px; border: 1px solid var(--border); border-radius: 999px; color: var(--foreground); background: #d9ed6126; font-size: .59rem; }
 .sign-story-chapters { display: flex; align-items: center; gap: 10px; margin-top: 27px; max-width: 280px; }
@@ -48,7 +48,7 @@
 .sign-story-classifier { fill: var(--foreground); stroke: var(--lime); stroke-width: 1.5; }
 .sign-story-node-cell { fill: var(--lime); }
 .sign-story-node-cell.cell-1, .sign-story-node-cell.cell-2 { fill: var(--background); opacity: .65; }
-.sign-story-node-caption { fill: var(--foreground); font: 23px 'DM Serif Display', Georgia, serif; letter-spacing: -.03em; }
+.sign-story-node-caption { fill: var(--foreground); font: 23px var(--font-dm-serif), Georgia, serif; letter-spacing: -.03em; }
 .sign-story-output-card { fill: var(--background); stroke: var(--border); stroke-width: 1; }
 .sign-story-output-dot { fill: var(--coral); }
 .sign-story-sentence-letter { fill: var(--foreground); font: 33px ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 500; }
@@ -57,7 +57,7 @@
 .sign-story-artboard figcaption svg { margin-left: auto; flex-shrink: 0; }
 .sign-story-finish { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 30px; padding-top: 3rem; padding-bottom: 6rem; }
 .sign-story-finish .eyebrow { margin-bottom: 15px; font-size: .57rem; }
-.sign-story-finish h3 { margin: 0 0 15px; font: 400 clamp(2.2rem, 3.6vw, 3.4rem)/1 'DM Serif Display', Georgia, serif; letter-spacing: -.045em; }
+.sign-story-finish h3 { margin: 0 0 15px; font: 400 clamp(2.2rem, 3.6vw, 3.4rem)/1 var(--font-dm-serif), Georgia, serif; letter-spacing: -.045em; }
 .sign-story-finish > div > p:last-child { max-width: 400px; margin: 0; color: var(--ink-soft); font-size: .78rem; line-height: 1.7; }
 .sign-story-finish-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 22px; }
 .sign-story-try { border: 0; cursor: pointer; min-height: 46px; border-radius: 7px; }

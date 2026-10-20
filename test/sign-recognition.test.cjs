@@ -10,7 +10,7 @@ function load(name) {
   if (modules.has(name)) return modules.get(name)
   const exports = {}
   modules.set(name, exports)
-  vm.runInNewContext(compile(name), { exports, require: (relative) => load(relative.replace('./', '')) })
+  vm.runInNewContext(compile(name), { exports, require: (relative) => load(relative.replace(/^\.\//, '')) })
   return exports
 }
 function compile(name) {
@@ -32,7 +32,7 @@ const dataset = (label) => ({
 
 // Exercise the actual recognition hook, classifier and stabilizer while controlling
 // camera frames and async storage. No browser, network, or saved user data is used.
-function host({ initialKind = 'static' } = {}) {
+function host({ initialKind = 'static', wordRecognizer } = {}) {
   const slots = [], effects = [], reads = [], commits = []
   let cursor = 0, dirty = true, hook, notify, loop, starts = 0
   let active = true, live = true, now = 0, kind = initialKind
@@ -82,8 +82,8 @@ function host({ initialKind = 'static' } = {}) {
         readWordRecognitionDataset: () => new Promise((resolve, reject) => reads.push({ resolve, reject })),
         subscribeWordChanges: (fn) => { notify = fn; return () => { notify = null } },
       }
-      if (name === './word-recognizer') return { createWordRecognizer: () => new (load('dtw-classifier').DtwSignRecognizer)() }
-      return load(name.replace('./', ''))
+      if (name === './word-recognizer') return { createTrainedWordRecognizer: () => wordRecognizer ?? new (load('dtw-classifier').DtwSignRecognizer)() }
+      return load(name.replace(/^\.\//, ''))
     },
   })
   const h = {
@@ -200,5 +200,50 @@ test('word-mode library refresh preserves the matcher sequence and held-word loc
   for (let i = 0; i < 30; i++) h.frame(moved(1))
   assert.deepEqual(h.commits.map((token) => token.text), ['HELLO'])
   assert.equal(h.starts, starts)
+  h.unmount()
+})
+
+test('repeating the same word gives each transcript entry its own id', async () => {
+  let holding = false
+  const recognizer = {
+    labels: ['YES'], sampleCount: 2000, usesTrainedModel: true,
+    replace() {}, reset() {},
+    predict(frame) {
+      // The committed label stays on screen while the hands are lowered.
+      const commit = frame.hands.length > 0 && !holding
+      holding = frame.hands.length > 0
+      return { label: 'YES', confidence: .9, completed: commit, wordEvent: 'committed', progress: 1 }
+    },
+  }
+  const h = host({ initialKind: 'words', wordRecognizer: recognizer }); await h.settle()
+  await h.resolveSaved(load('word-data').emptyWordDataset())
+  h.feed(300); h.feed(300, false); h.feed(300)
+  assert.deepEqual(h.commits.map(token => token.text), ['YES', 'YES'])
+  assert.notEqual(h.commits[0].id, h.commits[1].id)
+  h.unmount()
+})
+
+test('a completed trained word reaches the transcript after release without a letter hold', async () => {
+  let completed = false, seenHand = false
+  const recognizer = {
+    labels: ['YES'], sampleCount: 2000, usesTrainedModel: true,
+    replace() {}, reset() {},
+    predict(frame) {
+      if (frame.hands.length) seenHand = true
+      const commit = seenHand && !frame.hands.length && !completed
+      if (commit) completed = true
+      return completed ? { label: 'YES', confidence: .65, completed: commit, wordEvent: 'committed', progress: 1 }
+        : { label: null, confidence: 0, wordEvent: 'collecting', candidates: [{ label: 'YES', confidence: .4 }] }
+    },
+  }
+  const h = host({ initialKind: 'words', wordRecognizer: recognizer }); await h.settle()
+  await h.resolveSaved(load('word-data').emptyWordDataset())
+  h.feed(800)
+  assert.equal(h.commits.length, 0, 'A possible match must never be silently inserted')
+  assert.equal(h.current.snapshot.candidates[0].label, 'YES')
+  h.feed(800, false)
+  assert.deepEqual(h.commits.map(token => token.text), ['YES'])
+  h.feed(1500, false)
+  assert.equal(h.commits.length, 1, 'Completed word events must not repeat while hands remain lowered')
   h.unmount()
 })

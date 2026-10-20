@@ -1,7 +1,7 @@
 import type { SignFrame } from './types'
 import { featureHandCount } from './features'
 import { SequenceEncoder, sequenceMotion } from './sequence-features'
-import { WORD_FRAMES, WORD_LABELS, type WordSample } from './word-data'
+import { WORD_FRAMES, WORD_LABELS, WORD_MAX_FRAME_GAP_MS, WORD_MIN_FRAME_GAP_MS, type WordSample } from './word-data'
 
 export type WordRecordingSnapshot = { phase: 'countdown' | 'recording' | 'complete'; countdown: number; count: number; reason: string }
 export class WordRecorder {
@@ -28,8 +28,8 @@ export class WordRecorder {
       else this.encoder.reset()
       return this.tick(frame.timestamp)
     }
-    if (this.frames.length && frame.timestamp - this.lastCapture > 250) { this.done = true; this.reason = 'Camera frames stalled. No partial motion was saved.'; return this.tick(frame.timestamp) }
-    if (frame.timestamp - this.lastCapture < 65) return this.tick(frame.timestamp)
+    if (this.frames.length && frame.timestamp - this.lastCapture > WORD_MAX_FRAME_GAP_MS) { this.done = true; this.reason = 'Camera frames stalled. No partial motion was saved.'; return this.tick(frame.timestamp) }
+    if (frame.timestamp - this.lastCapture < WORD_MIN_FRAME_GAP_MS) return this.tick(frame.timestamp)
     if (!this.frames.length) this.firstCapture = frame.timestamp
     this.lastCapture = frame.timestamp; this.frames.push(vector); this.reason = 'Sign once now, then hold the finish'
     if (this.frames.length === WORD_FRAMES) {

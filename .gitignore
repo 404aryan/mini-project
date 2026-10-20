@@ -15,4 +15,5 @@ node_modules
 *.tsbuildinfo
 .DS_Store
 .sign-data-cache/
+.playwright-mcp/
 __pycache__/

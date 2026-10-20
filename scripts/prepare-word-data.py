@@ -130,7 +130,10 @@ def build():
                    license='Research and academic use only; contact ISL500 authors for commercial use', source=REPO,
                    attribution='ISL500 / ISL-DATA; derived normalized hand sequences; SIGN-DATA.md', samples=samples)
     (ROOT / 'public/models/isl-words.json').write_text(json.dumps(dataset, separators=(',', ':'))+'\n')
-    (CACHE / 'word-provenance.json').write_text(json.dumps(dict(source=REPO, samples=provenance), indent=2))
+    # The published provenance must always describe the published recordings.
+    provenance_text = json.dumps(dict(source=REPO, samples=provenance), indent=2)
+    (CACHE / 'word-provenance.json').write_text(provenance_text)
+    (ROOT / 'public/models/word-provenance.json').write_text(provenance_text)
     (CACHE / 'word-heldout.json').write_text(json.dumps(dict(**{k:v for k,v in dataset.items() if k != 'samples'}, samples=heldout)))
 
 
