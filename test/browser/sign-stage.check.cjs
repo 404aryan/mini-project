@@ -15,7 +15,7 @@ const check = (name, ok, detail = '') => { results.push({ name, ok }); console.l
   // E040: Back/Forward to an entry with another recognizer updates the stage.
   await page.goto(`${BASE}/?mode=sign&recognizer=words`, { waitUntil: 'networkidle' })
   const wordsButton = page.locator('.sign-recognition-modes button', { hasText: 'Words' })
-  const lettersButton = page.locator('.sign-recognition-modes button', { hasText: 'Letters' })
+  const lettersButton = page.locator('.sign-recognition-modes button', { hasText: 'Spell' })
   await wordsButton.waitFor({ state: 'visible', timeout: 20000 })
   check('deep link opens Words recognizer', (await wordsButton.getAttribute('aria-pressed')) === 'true')
   await page.locator('.sign-stage-close').click()
@@ -23,7 +23,7 @@ const check = (name, ok, detail = '') => { results.push({ name, ok }); console.l
   await page.locator('.mode-dock [aria-controls="sign-stage"]').click()
   await lettersButton.waitFor({ state: 'visible' })
   await lettersButton.click()
-  check('Letters chosen', (await lettersButton.getAttribute('aria-pressed')) === 'true' && !new URL(page.url()).searchParams.has('recognizer'), page.url())
+  check('Spelling override chosen', (await lettersButton.getAttribute('aria-pressed')) === 'true' && new URL(page.url()).searchParams.get('recognizer') === 'static', page.url())
   await page.goBack(); await page.waitForTimeout(300)
   await page.goBack(); await page.waitForTimeout(600)
   check('Back returns to the Words entry', new URL(page.url()).searchParams.get('recognizer') === 'words', page.url())
@@ -42,6 +42,7 @@ const check = (name, ok, detail = '') => { results.push({ name, ok }); console.l
   check('camera preview plays and stage is live', playing)
 
   // E039: Tab from a disclosure moves forward instead of jumping to the first control.
+  await page.locator('.sign-workspace-settings > summary').click()
   const summary = page.locator('.sign-personalize summary')
   await summary.focus()
   await page.keyboard.press('Tab')

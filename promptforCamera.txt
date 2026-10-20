@@ -1,0 +1,429 @@
+YAP & RENDER: CAMERA RECOGNITION UPGRADE
+Repository audit and implementation prompt | 20 October 2026
+
+PURPOSE
+
+Upgrade this existing application's Sign to Text experience into one coherent
+camera workspace for ISL words, fingerspelling and numbers. Preserve the user's
+existing Speak to Sign animations and make their entire vocabulary an explicit
+recognition coverage target. Implement in the seven stages below, with evidence
+at each stage. This is an implementation brief, not a claim that the upgrades
+have already been made.
+
+Act as an accessibility-focused frontend engineer and sign-language recognition
+engineer. Use Deaf ISL signers and qualified ISL reviewers for linguistic
+validation. Do not claim to know every ISL sign or certify animations from their
+English labels. Regional variants and grammatical context matter.
+
+Read AGENTS.md and the relevant installed Next.js documentation under
+node_modules/next/dist/docs before editing application code. Inspect the current
+working tree first; preserve unrelated changes and existing animation assets.
+
+AUDIT: WHAT EXISTS AND WHAT IS ACTUALLY VERIFIED
+
+1. The supplied screenshot and components/sign/sign-stage.tsx show separate
+   "Letters & numbers" and "Words" modes. A substantial dataset/personalization
+   panel appears between the camera and Transcript. The heading, camera minimum
+   heights, panel and floating dock compete for vertical space.
+   app/sign.css has multiple viewfinder height declarations and uses cover
+   cropping for the camera. There is no fullscreen control in SignStage.
+
+2. lib/sign/hand-tracker.ts uses MediaPipe GestureRecognizer with two hands.
+   The live recognition input contains hand landmarks, not elbows, shoulders,
+   torso or facial landmarks. This is more than wrist-only tracking: it already
+   captures 21 points per hand, including fingers. However, it cannot reliably
+   describe the complete upper-body signing space.
+   features.ts uses wrist-relative hand shape and raw wrist-x hand ordering.
+   temporal-features.ts additionally retains wrist positions, hand presence,
+   inter-hand relationships and time-sampled features. Hand shape and motion
+   already exist; body-relative locations and stable anatomical hand identity
+   are important missing pieces. Crossing hands can change x-sorted identity.
+
+3. Speak to Sign has 164 canonical vocabulary entries:
+   lib/islVocabulary.ts and components/avatar/animations/words.js.
+   It uses procedural bone-rotation tables and public/models/ybot.glb.
+   BasicSocial.js, Actions.js and the other Words modules animate arms,
+   forearms, wrists and fingers; some animations also move the neck/head.
+   AvatarPlayer.tsx adds a procedural face for its human presentation.
+   A rendered face is not evidence of sign-specific eyebrow, mouth or other
+   grammatical expression animation.
+
+4. The shipped temporal forest lists 152/164 vocabulary entries.
+   HELLO, YES, NO, GOOD, BAD, THANK_YOU, GO and WANT are already represented.
+   HI is not an additional canonical animation entry. Audit greeting aliases:
+   textToGloss.js currently includes "hi" and "hey" in COVERAGE_SKIP_WORDS.
+   These must not silently disappear from mixed greetings. Resolve HI/HEY to
+   HELLO where appropriate, with a deliberate readable output policy.
+   Model aliases include HOUSE -> HOME and BEGIN -> START; validate whether each
+   mapping reflects the intended sign variant instead of assuming equivalence.
+   Count canonical concepts, aliases and independently learned classes honestly.
+
+   The 12 missing pretrained entries are:
+   NEED, TOILET, TELL, PROJECT, HOW, HOW_MUCH, COME_IN, GO_OUT, BRING,
+   NEED_HELP, WAIT_MINUTE, BECAUSE.
+
+   Static baseline: A-Z and 1-9; digit 0 lacks bundled validated examples.
+   Personal recording slots do not mean a sign is pretrained.
+
+5. A special Thumb_Up detector adds YES after a stable 500 ms detection.
+   Existing data notes explicitly describe this as an app gesture matching the
+   avatar, not a universal ISL rule. Review its conflicts with lexical signs.
+   Do not relabel generic MediaPipe gestures as ISL without validation.
+
+6. Checks run during this audit:
+   - npm test: 119 tests passed, 0 failed.
+   - npm run typecheck: passed.
+   - Tests include animation completion, return to rest, valid YBot bones,
+     preserved animation source assets and vocabulary reachability.
+   - node scripts/check-word-recognition.cjs:
+     30 genuine held-out recorded-track replays; 12 correct transcript outputs,
+     1 wrong output, 17 rejected. The wrong output was expected YES -> YOUR.
+     Correct-output coverage was 40%; precision among emitted outputs was
+     12/13, about 92.3%, on this small replay set only.
+   - node scripts/evaluate-sign-data.cjs:
+     static: 350 observations, 334 correct accepts, 0 incorrect, 16 rejected.
+     legacy 12-word DTW templates: 12 observations, 4 correct, 0 incorrect,
+     8 rejected. This legacy evaluation is NOT the 152-entry forest benchmark.
+   - Shipped forest metadata, inspected rather than retrained/re-evaluated here:
+     563/763 top-choice correct (73.8%); at acceptance gates, 176 correct accepts,
+     12 incorrect accepts, 575 rejections. This differs from end-to-end replay.
+     Dictionary-only classes do not have independent validation.
+   - npm run test:browser -- http://localhost:3000 could not execute its six
+     suites because Playwright was unavailable. This is a tooling blocker,
+     not six demonstrated application defects.
+
+   No physical webcam session, visual playback review of every animation,
+   production-browser verification, mobile-device run, or Deaf signer study
+   was completed in this audit. The supplied screenshot is visual evidence of
+   the layout, not of recognition accuracy. No production build was rerun.
+   Do not describe this audit as complete real-world testing.
+
+7. docs/sign-words.md describes older zero-bundled-word behavior and stale
+   matching/hold rules. Reconcile it with actual runtime and current metadata.
+   Existing source documentation flags research-only restrictions on the
+   combined word weights; preserve provenance and review source permissions
+   when adding data or changing distribution.
+
+PRODUCT DECISIONS
+
+The student's requested direction is sound:
+- Put the transcript immediately below the camera.
+- Add fullscreen for the camera workspace, including captions and controls.
+- Track hands, forearms, upper-body position and relevant facial/head signals.
+- Provide one primary recognition experience and shared vocabulary.
+- Make every existing avatar concept a tracked recognition target.
+
+Two implementation distinctions are essential:
+- One interface does not mean blindly running two recognizers and concatenating
+  their guesses. A word can contain handshapes that resemble letters or digits.
+  Use temporal arbitration and an explicit spelling override for ambiguity.
+- Avatar animation files cannot simply become a reliable human-camera model.
+  Matching English labels is not proof of matching motions. Retain animations
+  as demonstrations and comparison references; use genuine validated signer
+  recordings to train and test recognition.
+
+STAGE 1 OF 7: FIX CAMERA, TRANSCRIPT AND FULLSCREEN
+
+Make this independently shippable before changing the recognition model.
+
+Workspace order:
+  compact title / close / recognition status
+  camera with unobtrusive start-pause, mirror and fullscreen controls
+  LIVE TRANSCRIPT with latest text and uncertain candidates
+  compact correction / copy / speech actions
+  collapsed vocabulary, help, training and advanced settings
+
+Remove the large dataset notice from between the camera and transcript.
+Retain loading/error feedback as a small status row; expanded vocabulary belongs
+below the transcript or in a drawer. Compact decorative headings during use.
+Keep cream/ink/lime visual styling and readable text, rather than miniaturizing
+everything to force it to fit.
+
+Budget available height using dynamic viewport units and safe-area insets.
+At 1366x768 and 1920x1080, show the usable camera, latest transcript and primary
+controls together without page scrolling. At 390x844 and 375x812, preserve a
+useful portrait signing view and visible caption area. At high text zoom or very
+short landscape heights, permit accessible scrolling rather than clipping.
+Long transcript history may scroll internally while the newest output stays
+visible unless the user deliberately scrolls back.
+
+Frame from above the head to below the elbows/upper waist, with lateral hand
+movement room. Avoid cover cropping that hides part of the signing region.
+Use contain/letterboxing or an explicitly tested camera aspect strategy.
+Update overlay projection for the exact visible video rectangle, resize,
+orientation, mirror state and fullscreen; preserve unmirrored model input.
+
+Request fullscreen on a wrapper containing video, overlay, transcript and
+controls, not the video element alone. Use the supported Fullscreen API and an
+in-page expanded fallback. Handle rejected requests and fullscreenchange.
+Escape should first leave fullscreen without also closing the entire sign
+workspace. Restore focus, preserve the stream/transcript, and avoid duplicate
+inference loops. No dock or avatar PiP may cover captions or signing hands.
+Make PiP optional/collapsible, including inside the fullscreen subtree if used.
+
+Acceptance: viewport screenshots and geometry assertions; keyboard and screen
+reader checks; enter/exit fullscreen repeatedly; no hidden caption controls;
+camera permission and teardown regressions still pass.
+
+STAGE 2 OF 7: SHARED VOCABULARY AND ANIMATION ALIGNMENT
+
+Extend the existing vocabulary source instead of creating another competing
+hardcoded list. Give each canonical concept metadata for:
+canonical ID, readable label, English/Hindi aliases where validated, token kind,
+animation function, sign variant/reference, required tracking modalities,
+recognition availability, dataset/version/license, and validation status.
+Use namespaced token identities for letter I versus pronoun I.
+THANK_YOU must render as "THANK YOU", not expose underscores in transcript.
+
+Generate a coverage matrix for all 164 avatar entries plus A-Z and digits 0-9:
+animation exists; runtime animation valid; linguistically reviewed; real data
+available; trained; independently evaluated; eligible for automatic acceptance.
+Show aliases separately. "Animated", "available for personal training" and
+"verified for recognition" are different statuses.
+
+Prioritize HELLO/HI, YES, NO, GOOD, BAD, THANK YOU, GO, WANT, PLEASE, HELP,
+SORRY, COME, WATER, EAT and DRINK. Then close the 12 missing entries and zero.
+Do not invent landmark samples or mark missing labels ready.
+
+Review the actual avatar motion against an ISL reference and human signer:
+handshape, palm orientation, body-relative location, direction, movement,
+two-hand relationship and relevant non-manual markers.
+Retain the user's authored animations and make focused corrections with a
+record of why. Do not replace the animation library with generic canned signs.
+Test HI, "hi I want water", THANK YOU, canonical underscore tokens, aliases,
+all word animations, fingerspelling and numbers through the existing pipeline.
+
+Acceptance: generated coverage report has no unexplained omissions; every
+existing animation remains reachable; uncertain variants are flagged for review.
+
+STAGE 3 OF 7: HANDS, ARMS, BODY AND FACE TRACKING
+
+Prototype a browser-supported unified holistic tracker or synchronized
+Hand/Gesture + Pose + Face landmarkers. The installed tasks-vision type
+definitions expose HolisticLandmarker, FaceLandmarker and PoseLandmarker;
+verify the installed runtime, available model files and supported options before
+choosing. Do not assume a Python example runs in JavaScript.
+Benchmark one combined tracker against separate tasks before committing.
+
+Use one video stream and common timestamps. Track:
+- both hands and fingers, orientation and relative motion;
+- shoulders, elbows and wrists to estimate upper-arm/forearm configuration;
+- torso-relative signing locations and head orientation;
+- relevant eyebrow, mouth and facial movement features when supported.
+
+Use anatomical identity plus temporal continuity for hands, including crossing,
+occlusion, dominant-hand variation and re-entry. Do not rely only on left-to-right
+pixel sorting. Validate handedness conventions under preview mirroring.
+Use shoulder/torso normalization and retain meaningful orientation and movement;
+do not normalize away distinctions required by the signs.
+
+Do not infer reliable physical depth or exact forearm twist from a single RGB
+camera. Estimate what the observations support and retain confidence/missing
+masks. Generic facial-expression scores are not ISL grammar labels or emotional
+state predictions. Non-manual grammar needs annotated temporal data.
+
+Version landmark and feature schemas. The existing 135-value temporal frames
+and trained forest cannot consume added face/body features unchanged.
+Keep a compatible hands-only path with truthful capability status, and explicitly
+enable only signs supported by its inputs. Preserve existing personal recordings
+without pretending they contain missing face/pose coordinates.
+
+Self-host required models and WASM; lazy-load; prefer workers where supported;
+throttle inference on slower devices; drop stale frames rather than accumulating
+latency. Measure FPS, p50/p95 inference time, memory and thermal behavior.
+Give actionable framing feedback when elbows, hands or head are out of view.
+Do not fabricate landmarks across long occlusions.
+
+Acceptance: alignment and tracking tests across mirrors, cameras, orientations,
+crossed hands and occlusions; schema compatibility; device performance evidence;
+no face/body capability claim before those signals feed recognition.
+
+STAGE 4 OF 7: ONE RECOGNITION EXPERIENCE WITH TEMPORAL ARBITRATION
+
+Replace mandatory page-level Words versus Letters/Numbers separation with one
+camera workspace. Target an Auto default; retain a compact intentional "Spell"
+override and optional Numbers override for difficult cases and names.
+Do not ship Auto as dependable until mixed-stream evaluation passes.
+
+Use a coordinator for word candidates, fingerspelling and numeric sequences.
+Introduce candidate -> provisional -> committed/rejected states.
+Buffer evidence across motion; do not emit letters from transient handshapes
+inside an unfinished word. Do not compare uncalibrated DTW, k-NN and forest scores
+as if all were comparable probabilities.
+Use validated routing, motion boundaries, type-aware thresholds, ambiguity
+margins and bounded waiting. Abstain or ask for a candidate confirmation when
+the evidence does not determine intent.
+
+Group fingerspelled letters into words and digits into numbers. Preserve an
+intentional distinction between word I and letter I, and GO versus G-O.
+Test names, mixed word/spelling sequences, repeated letters, repeated digits,
+intentional repeated words, two-hand transitions and one-to-two-hand changes.
+
+Move toward natural segmentation using onset/offset and pauses; lowering both
+hands after every word must not be a permanent requirement. Start with tested
+isolated-sign boundaries and introduce continuous recognition only with suitable
+training data. Ordinary repositioning and scratching must remain non-sign input.
+Handle the YES shortcut through the same arbitration and duplicate suppression.
+Cancel stale worker results after pause, camera switch, dataset change or exit.
+
+Acceptance: no spurious letters inserted mid-word; no duplicate commits from
+candidate confirmation or held poses; known ambiguity cases reject safely;
+mixed-stream tests demonstrate improvements over the current isolated baseline.
+
+STAGE 5 OF 7: REAL DATA, TRAINING AND FULL VOCABULARY COVERAGE
+
+Keep the temporal forest and personal DTW path as measured baselines.
+Choose a compact sequence model only after profiling real data and comparing
+end-to-end results. Bigger architecture names do not establish better accuracy.
+Train on the same feature schema and normalization used by the browser.
+
+Acquire consented, appropriately licensed ISL clips for the intended variants.
+Include multiple signers, speeds, distances, lighting/background conditions,
+hand dominance, body shapes and camera devices. Annotate sign boundaries,
+variant, hand count and relevant non-manual markers. Include non-sign motion,
+hard negatives, confusing pairs and transitions. Add continuous sequences before
+claiming sentence recognition.
+
+Split by signer and recording session/source before extracting windows;
+overlapping frames and augmented versions of the same clip cannot cross splits.
+Use train, calibration/validation and untouched test partitions.
+Source-dictionary singleton classes need independent signers before broad
+accuracy claims. Evaluate regional variants rather than silently merging them.
+
+Use animation renders only as explicitly identified supplemental material after
+validating geometry/domain transfer. They cannot replace real training evidence
+or serve as the independent human-camera test set.
+
+Record dataset hashes, label mapping, schema, licenses, split manifests, model
+hashes and reproducible training/export commands. Preserve user recordings and
+their provenance through migration; do not overwrite them with bundled data.
+If data is unavailable, deliver the complete data gap/collection manifest and
+leave the label unavailable instead of simulating completion.
+
+Acceptance: all 164 canonical entries are accounted for; missing data is explicit;
+promote each class only with measured evidence. Adding labels to JSON is not
+completion. Diagnose the observed YES -> YOUR error and high rejection rate
+without simply lowering thresholds.
+
+STAGE 6 OF 7: TRANSCRIPT, CORRECTION AND SENTENCE OUTPUT
+
+Keep provisional guesses visually separate from committed transcript text.
+Represent committed recognition events with token kind, canonical label,
+readable text, source, time span and useful confidence metadata. Preserve simple
+text editing/copy while enabling undo-last-sign rather than only deleting one
+character from a multi-character word. Preserve the existing 1,200-character
+limit and spaces between words; support repeated letters/digits correctly.
+
+Provide clear, copy, edit, undo and deliberate speech controls close to captions.
+Announce committed updates politely to assistive technology without announcing
+every inference frame. Confidence displays must not invent probability claims.
+
+Raw recognized gloss and optional readable English/Hindi output must remain
+distinguishable. Sentence cleanup cannot silently change names, quantities,
+negation or unresolved words. Never use an LLM to disguise recognition errors.
+ISL sentence interpretation requires more than English word reordering.
+Preserve the original and let the user review generated text before speaking it.
+
+Keep video and landmarks local by default. Clearly state that separately invoked
+online text cleanup sends text; preserve existing camera consent, pause-on-hide,
+track-end handling, pagehide cleanup and explicit restart behavior.
+Personal training capture must remain deliberate and locally manageable.
+
+Acceptance: no hallucinated automatic transcript changes; correction and undo
+work across token types; no unexpected camera-frame uploads; speech and
+recognition stop appropriately when leaving the workspace.
+
+STAGE 7 OF 7: VERIFY, VALIDATE AND RELEASE IN INCREMENTS
+
+Install/configure the browser test tooling in the permitted environment and run
+the existing suite against a running local app with paid AI requests disabled.
+Run npm run check (typecheck, unit tests, production build) and targeted new
+regressions. Reuse the existing tests and extend meaningful failure cases.
+
+Test layout at 1920x1080, 1366x768, 1280x720, 390x844, 375x812, mobile landscape
+and 200% zoom. Capture normal and fullscreen screenshots. Test keyboard focus,
+Escape, screen readers, contrast, reduced motion and captions during long text.
+Cover denied/missing/busy cameras, permission races, offline/cold loading,
+GPU failure, CPU fallback, interrupted tracks, hide/resume and repeated switches.
+Verify that face/body model loading failures do not falsely report readiness.
+
+Review every existing animation visually as well as mechanically, especially
+the requested social words, forearm orientation, two-hand occlusion and face
+visibility. Preserve queue completion, repeat/stop/speed controls, existing
+speech translation and the retained avatar across mode changes.
+
+Use recorded genuine video end-to-end through landmark extraction and inference,
+not only pre-extracted tracks. Then run consented physical-camera sessions with
+previously unseen Deaf ISL signers, on real desktop and Android/iOS devices.
+Synthetic blank streams can validate lifecycle only, not sign accuracy.
+
+Report separate metrics:
+- isolated-sign top-1 and macro/per-class precision/recall;
+- automatic-commit precision AND coverage/rejection rate;
+- false commits per minute on non-sign movement;
+- sequence token/word error rate, insertions, deletions and substitutions;
+- boundary errors, duplicate rate, unknown-sign rejection;
+- p50/p95 end-of-sign-to-caption latency and sustained device FPS;
+- signer, device and lighting breakdowns with sample counts.
+
+Suggested provisional targets to validate on a declared independent test set:
+at least 95% automatic-commit precision with at least 80% correct-output coverage
+for the first validated core-word subset; no more than one false commit per
+10 minutes of representative non-sign activity; p95 caption latency within
+1 second of sign completion; usable sustained tracking on the declared minimum
+device. These are proposed engineering goals, not achieved results or universal
+ISL certification. Report uncertainty and do not hide weak classes in averages.
+
+Do not claim success by accepting almost nothing. Do not extrapolate a handful
+of replay clips to all users. Keep experimental labels visible until evaluated.
+Obtain linguistic/user feedback from Deaf ISL reviewers on both directions.
+
+DELIVERY ORDER AND COMPLETION RULES
+
+Seven stages; incremental release:
+1 -> ship layout/fullscreen after UI verification.
+2 -> ship the shared vocabulary manifest and coverage truth.
+3 -> add body/face tracking with schema and performance evidence.
+4 -> integrate unified recognition behind measured rollout gates.
+5 -> train/validate missing and improved vocabulary with real data.
+6 -> finish semantic transcript/correction and sentence output integration.
+7 -> complete cross-device, browser and independent signer validation.
+
+Data planning starts in Stage 2 and collection can proceed alongside Stage 3.
+Stage 4 can be developed using existing backends, but trustworthy Auto recognition
+depends on Stage 5 data and Stage 7 validation. Stage 6's immediate caption layout
+is delivered in Stage 1; its token semantics follow the recognition integration.
+Do not promise a fixed completion date for data collection or signer recruitment.
+
+After each stage report files changed, user-visible behavior, checks actually
+run, measured results, remaining limitations and the next dependency.
+Update stale documentation and retain before/after evidence.
+Do not declare full ISL translation, full vocabulary recognition or complete
+testing when only interface work, model label coverage or automated tests pass.
+
+REFERENCES CONSULTED
+
+ISL dictionary and regional variants / Deaf expert participation:
+https://www.pib.gov.in/PressReleasePage.aspx?PRID=1698739&lang=1&reg=3
+
+ISL teaching material discussing grammatical facial expression:
+https://cdnbbsr.s3waas.gov.in/s34f4eeef3a8c90dfceaddd5c6d64e4ebb/uploads/2025/07/202507151356742467.pdf
+
+MediaPipe holistic tracking (tracking capability, not an ISL translator):
+https://developers.google.com/edge/mediapipe/solutions/vision/holistic_landmarker
+
+Official browser holistic example:
+https://github.com/google-ai-edge/mediapipe-samples-web/blob/main/src/tasks/holistic-landmarker.ts
+
+Project-specific evidence:
+components/sign/sign-stage.tsx; app/sign.css; lib/sign/hand-tracker.ts;
+lib/sign/features.ts; lib/sign/temporal-features.ts;
+lib/sign/use-sign-recognition.ts; lib/sign/word-recognizer.ts;
+lib/islVocabulary.ts; components/avatar/animations/words.js;
+components/avatar/animations/Words/BasicSocial.js;
+components/avatar/signQueue.ts; components/avatar/AvatarPlayer.tsx;
+components/avatar/humanLayer.ts; components/avatar/textToGloss.js;
+public/models/isl-temporal-model.json; public/models/SIGN-DATA.md;
+docs/sign-status.md; docs/sign-words.md;
+scripts/check-word-recognition.cjs; scripts/evaluate-sign-data.cjs;
+.sign-data-cache/temporal-live-replay.json (local generated audit evidence).

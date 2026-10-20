@@ -1,7 +1,6 @@
-// Shared setup for the browser regression checks. Playwright is not a project
-// dependency: install it (npm i -g playwright && npx playwright install chromium)
-// or point PLAYWRIGHT_MODULE at an installed package. PLAYWRIGHT_CHROMIUM can
-// name a specific browser executable.
+// Playwright is a development dependency. After npm ci, install its browser
+// with npx playwright install chromium. PLAYWRIGHT_MODULE can select another
+// installed package; PLAYWRIGHT_CHROMIUM can name an existing browser executable.
 const os = require('node:os')
 
 function loadPlaywright() {

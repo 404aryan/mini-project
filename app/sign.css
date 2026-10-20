@@ -26,22 +26,29 @@
 .mode-dock.is-compact .dock-item { width: 52px; padding: 0; }
 .dock-item:focus-visible, .sign-stage button:focus-visible, .sign-stage a:focus-visible { outline: 2px solid var(--coral); outline-offset: 4px; }
 @keyframes sign-live { 50% { opacity: .6; transform: scale(.8); } }
-.sign-stage { position: fixed; z-index: 40; inset: 0; height: 100dvh; padding: max(22px, env(safe-area-inset-top)) 5vw 100px; overflow: auto; color: var(--foreground); background: var(--background); }
-.sign-stage-header { display: flex; align-items: center; gap: 18px; max-width: 1280px; margin: auto; }
+.sign-stage { position: fixed; z-index: 40; inset: 0; height: 100dvh; padding: max(14px, env(safe-area-inset-top)) 24px calc(90px + env(safe-area-inset-bottom)); overflow: auto; color: var(--foreground); background: var(--background); scroll-padding-block: 16px 100px; }
+.sign-stage-header { display: flex; align-items: center; gap: 18px; max-width: 1080px; margin: auto; min-height: 44px; }
+.sign-stage-header h2 { margin: 0 0 3px; font: 400 clamp(1.35rem, 3vw, 1.85rem) var(--font-dm-serif), Georgia, serif; letter-spacing: -.035em; }
 .sign-wordmark { font-size: 1.1rem; font-weight: 750; letter-spacing: -.04em; }
 .sign-wordmark span { color: var(--coral); }
-.sign-beta { border: 1px solid var(--border); border-radius: 999px; padding: 5px 9px; color: var(--ink-soft); font: .6rem ui-monospace, monospace; }
+.sign-beta { color: var(--ink-soft); font-size: .72rem; }
 .sign-stage-close { display: grid; place-items: center; margin-left: auto; width: 40px; height: 40px; border: 1px solid var(--border); border-radius: 50%; background: transparent; cursor: pointer; }
 .sign-stage-close:hover { background: var(--surface); }
-.sign-stage-heading { max-width: 1080px; margin: 28px auto 22px; }
+.sign-stage-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 1080px; margin: 10px auto; }
+.sign-framing-note { color: var(--ink-soft); font-size: .75rem; }
+.sign-camera-workspace { width: min(100%, 1080px); margin: auto; }
 .sign-stage-heading .eyebrow { margin-bottom: 13px; font-size: .6rem; }
 .sign-stage-heading h2 { font-size: clamp(2.8rem, 5vw, 4.8rem); line-height: 1; margin-bottom: 12px; }
 .sign-stage-heading > p:not(.eyebrow) { color: var(--ink-soft); font-size: .82rem; margin: 0; }
-.sign-viewfinder { position: relative; width: min(100%, 1080px); height: clamp(290px, calc(100dvh - 350px), 650px); min-height: 290px; margin: auto; overflow: hidden; border: 1px solid #54605b35; border-radius: 18px; background: var(--foreground); color: var(--background); box-shadow: 0 16px 44px #17202010; }
-.sign-camera-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); opacity: 0; }
+.sign-viewfinder { position: relative; width: 100%; height: clamp(210px, calc(100dvh - 475px), 580px); min-height: 16rem; margin: auto; overflow: hidden; border: 1px solid #54605b35; border-radius: 18px 18px 0 0; background: var(--foreground); color: var(--background); box-shadow: 0 16px 44px #17202010; }
+.sign-camera-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; transform: scaleX(-1); opacity: 0; }
+.sign-camera-video[data-mirrored="false"] { transform: none; }
+.sign-camera-controls { position: absolute; z-index: 3; top: 12px; right: 12px; display: flex; gap: 6px; }
+.sign-camera-controls button { display: flex; align-items: center; gap: 6px; min-width: 44px; min-height: 44px; justify-content: center; padding: 9px 12px; border: 1px solid #f5f1e94a; border-radius: 10px; background: #172020dc; color: var(--background); cursor: pointer; font-size: .75rem; }
+.sign-camera-controls button[aria-pressed="true"] { color: var(--lime); border-color: #d9ed6170; }
 .sign-stage.is-live .sign-camera-video { opacity: 1; }
 .sign-camera-shade { position: absolute; inset: 0; background: linear-gradient(180deg, #17202022, transparent 30%, transparent 70%, #17202080); pointer-events: none; }
-.sign-model-chip { position: absolute; z-index: 2; top: 22px; left: 24px; display: flex; align-items: center; gap: 6px; max-width: calc(100% - 48px); padding: 8px 11px; border: 1px solid #f5f1e930; border-radius: 999px; background: #172020a8; color: var(--lime); backdrop-filter: blur(12px); font: .61rem ui-monospace, monospace; }
+.sign-model-chip { position: absolute; z-index: 2; top: 18px; left: 18px; display: flex; align-items: center; gap: 6px; max-width: calc(100% - 340px); padding: 8px 11px; border: 1px solid #f5f1e930; border-radius: 999px; background: #172020d9; color: var(--lime); font: .65rem ui-monospace, monospace; }
 .sign-model-chip.is-loading span { animation: sign-shimmer 1.8s ease-in-out infinite; }
 .sign-spinner { animation: sign-spin 1.5s linear infinite; }
 @keyframes sign-shimmer { 50% { opacity: .45; } }
@@ -50,18 +57,19 @@
 .sign-scan-line { position: absolute; left: 5%; right: 5%; height: 1px; background: var(--lime); box-shadow: 0 0 18px var(--lime); pointer-events: none; }
 .sign-scan-sweep { position: absolute; inset: 0; pointer-events: none; }
 .sign-scan-line { top: 90%; }
-.sign-camera-message { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 62px 28px 38px; text-align: center; }
-.sign-message-icon { display: grid; place-items: center; width: 50px; height: 50px; margin-bottom: 16px; border: 1px solid #d9ed6140; border-radius: 16px; color: var(--lime); background: #d9ed610a; }
-.sign-camera-message h3 { max-width: 480px; margin-bottom: 10px; font-family: var(--font-dm-serif), Georgia, serif; font-weight: 400; font-size: clamp(1.6rem, 3vw, 2.5rem); letter-spacing: -.04em; line-height: 1.05; }
+.sign-camera-message { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 65px 24px 22px; text-align: center; overflow: auto; }
+.sign-message-icon { display: grid; place-items: center; width: 38px; height: 38px; flex-shrink: 0; margin-bottom: 10px; border: 1px solid #d9ed6140; border-radius: 12px; color: var(--lime); background: #d9ed610a; }
+.sign-camera-message h3 { max-width: 480px; margin-bottom: 8px; font-family: var(--font-dm-serif), Georgia, serif; font-weight: 400; font-size: clamp(1.4rem, 2.6vw, 2rem); letter-spacing: -.04em; line-height: 1.1; }
 .sign-camera-message p { max-width: 410px; margin-bottom: 20px; font-size: .76rem; line-height: 1.65; color: #f5f1e9a0; }
 .sign-camera-button { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 13px 19px; border: 0; border-radius: 999px; background: var(--lime); color: var(--foreground); font-size: .74rem; font-weight: 700; cursor: pointer; }
 .sign-camera-button:hover { background: var(--background); }
 .sign-permission-note { display: flex; align-items: center; gap: 5px; margin-top: 13px; color: #f5f1e980; font-size: .59rem; }
 .sign-frame-index { position: absolute; bottom: 25px; left: 26px; color: #f5f1e970; font: .55rem ui-monospace, monospace; letter-spacing: .12em; }
+.sign-stage:not(.is-live) .sign-frame-index { display: none; }
 .sign-preview-hint { position: absolute; left: 26px; bottom: 45px; display: flex; align-items: center; gap: 10px; font-size: .72rem; }
 .sign-preview-hint .dock-live-dot { position: static; flex-shrink: 0; background: var(--lime); box-shadow: 0 0 0 3px #d9ed6120; }
 .sign-preview-hint > span:last-child { color: #f5f1e9a0; }
-.sign-stage-footer { display: flex; flex-wrap: wrap; gap: 12px 25px; max-width: 1080px; margin: 18px auto; padding-right: 185px; color: var(--ink-soft); font-size: .62rem; }
+.sign-stage-footer { display: flex; flex-wrap: wrap; gap: 8px 20px; max-width: 1080px; margin: 12px auto; color: var(--ink-soft); font-size: .7rem; }
 .sign-stage-footer > span { display: inline-flex; align-items: center; gap: 6px; }
 /* The original wrapper and its canvas stay in the same React tree. Motion
    projects between these boxes using transforms; the GLB is never reloaded. */
@@ -76,19 +84,24 @@
   .dock-item { padding: 0 13px; width: 56px; }
   .dock-label { display: none; }
   .mode-dock { gap: 5px; }
-  .sign-stage { padding: max(16px, env(safe-area-inset-top)) 18px 100px; }
+  .sign-stage { padding: max(12px, env(safe-area-inset-top)) 12px calc(90px + env(safe-area-inset-bottom)); }
   .sign-stage-header { gap: 10px; }
   .sign-wordmark { font-size: .9rem; }
   .sign-beta { font-size: .53rem; padding: 4px 6px; }
-  .sign-stage-heading { margin-top: 28px; }
+  .sign-stage-heading { margin: 8px auto; }
   .sign-stage-heading .eyebrow { font-size: .49rem; letter-spacing: .09em; }
   .sign-stage-heading h2 { font-size: clamp(2.5rem, 9.4vw, 4rem); }
   .sign-stage-heading > p:not(.eyebrow) { font-size: .72rem; }
-  .sign-viewfinder { height: max(380px, calc(100dvh - 330px)); }
-  .sign-model-chip { top: 18px; left: 18px; font-size: .53rem; max-width: calc(100% - 36px); }
-  .sign-camera-message { padding: 62px 22px 40px; }
-  .sign-camera-message p { font-size: .71rem; }
-  .sign-stage-footer { font-size: .57rem; padding-right: 100px; line-height: 1.5; }
+  .sign-viewfinder { height: clamp(250px, calc(100dvh - 480px), 440px); }
+  .sign-model-chip { top: 15px; left: 12px; font-size: .6rem; max-width: calc(100% - 172px); }
+  .sign-model-chip span { overflow-wrap: anywhere; }
+  .sign-camera-controls { right: 10px; top: 10px; gap: 4px; }
+  .sign-camera-controls button { padding: 9px; }
+  .sign-camera-controls button span { display: none; }
+  .sign-framing-note { display: none; }
+  .sign-camera-message { padding: 66px 20px 24px; }
+  .sign-camera-message p { font-size: .75rem; margin-bottom: 14px; }
+  .sign-stage-footer { font-size: .68rem; line-height: 1.5; }
   .site-shell.sign-mode-active .avatar-stage.sign-avatar-pip { right: var(--sign-pip-right, 22px); bottom: var(--sign-pip-bottom, 102px); width: 95px; height: 125px; border-radius: 12px; }
   .sign-avatar-pip .sign-pip-label { top: 8px; left: 8px; font-size: .58rem; }
   .sign-pip-label span { display: none; }
@@ -100,7 +113,6 @@
 
 /* Phase 2: tracking data is painted directly into this visual-only canvas. */
 .sign-hand-overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.sign-viewfinder { height: clamp(290px, calc(100dvh - 460px), 600px); }
 .sign-model-chip button { display: grid; place-items: center; width: 25px; height: 25px; padding: 0; border: 1px solid #d9ed6150; border-radius: 50%; background: transparent; color: var(--lime); cursor: pointer; }
 .sign-brackets { transition: transform .25s, opacity .25s; opacity: .55; }
 .sign-corner { position: absolute; width: 32px; height: 32px; fill: none; stroke: var(--lime); stroke-width: 1.5px; }
@@ -127,16 +139,21 @@
 .sign-import-button:focus-within { outline: 2px solid var(--coral); outline-offset: 4px; }
 .sign-import-error, .sign-session-note { flex: 1 1 100%; color: var(--ink-soft); font-size: .62rem; }
 .sign-dataset-notice .sign-import-error { color: var(--foreground); }
-.sign-transcript { max-width: 1080px; margin: 0 auto; padding: 20px 22px 12px; border: 1px solid var(--border); border-radius: 15px; background: #fffefa80; }
+.sign-transcript { max-width: 1080px; margin: 0 auto; padding: 12px 18px; border: 1px solid var(--border); border-top: 0; border-radius: 0 0 15px 15px; background: #fffefa80; }
+.sign-transcript-heading .eyebrow { display: none; }
 .sign-transcript-heading { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
 .sign-transcript-heading .eyebrow { margin-bottom: 7px; font-size: .51rem; }
 .sign-transcript h3 { margin: 0; font: 400 1.55rem var(--font-dm-serif), Georgia, serif; letter-spacing: -.04em; }
 .sign-token-count { color: var(--ink-faint); font: .6rem ui-monospace, monospace; }
-.sign-raw-line { display: flex; flex-wrap: wrap; align-content: center; min-height: 72px; max-height: 170px; overflow-y: auto; padding: 14px 0; }
-.sign-letter { display: inline-block; white-space: pre; color: var(--foreground); font: 600 1.5rem ui-monospace, monospace; line-height: 1.5; }
+/* Scroll anchoring would move the newest caption out of view when earlier letters finish animating out. */
+.sign-raw-line { min-height: 48px; max-height: 84px; overflow-y: auto; overflow-anchor: none; padding: 10px 0; overflow-wrap: anywhere; }
+.sign-letter { display: inline; white-space: pre-wrap; color: var(--foreground); font: 600 1.25rem ui-monospace, monospace; line-height: 1.5; }
 .sign-transcript-placeholder { color: var(--ink-faint); font-size: .78rem; }
 .sign-text-actions { display: flex; flex-wrap: wrap; gap: 7px; }
-.sign-text-actions button { display: flex; align-items: center; gap: 5px; min-height: 34px; padding: 7px 9px; border: 1px solid var(--border); border-radius: 7px; background: transparent; color: var(--ink-soft); font-size: .64rem; cursor: pointer; }
+.sign-text-actions button { display: flex; align-items: center; gap: 5px; min-height: 40px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 7px; background: transparent; color: var(--ink-soft); font-size: .75rem; cursor: pointer; }
+.sign-text-actions .sign-speak-button { background: var(--foreground); color: var(--background); }
+.sign-output-settings { margin-top: 10px; font-size: .75rem; }
+.sign-output-settings summary { cursor: pointer; }
 .sign-text-actions button:hover:not(:disabled) { color: var(--foreground); background: var(--surface); }
 .sign-stage button:disabled { opacity: .45; cursor: not-allowed; }
 .sign-edit-label { display: block; margin-top: 16px; color: var(--ink-soft); font-size: .68rem; }
@@ -164,13 +181,9 @@
 .sign-training-preview h1 { font-size: clamp(3rem, 8vw, 5.5rem); line-height: .95; }
 .sign-training-preview h1 em { color: var(--coral); }
 .sign-training-preview > p:not(.eyebrow) { color: var(--ink-soft); font-size: .9rem; line-height: 1.7; }
-@media (min-width: 1000px) {
-  .sign-stage { padding-right: max(210px, 5vw); }
-}
 @media (max-width: 760px) {
-  .sign-viewfinder { height: max(370px, calc(100dvh - 375px)); }
   .sign-dataset-notice { padding: 15px; }
-  .sign-transcript { padding: 18px 15px 10px; }
+  .sign-transcript { padding: 12px; }
   .sign-text-actions { gap: 5px; }
   .sign-text-actions button { min-height: 40px; padding: 8px; }
   .sign-output-actions { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
@@ -179,14 +192,12 @@
   .sign-output-actions > button { min-height: 42px; font-size: .61rem; padding: 9px 8px; }
   .sign-preview-hint { bottom: 42px; max-width: calc(100% - 110px); font-size: .61rem; }
   .sign-hold-indicator { right: 19px; bottom: 24px; }
-  .sign-stage-footer { padding-bottom: 115px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .sign-brackets, .sign-hold-indicator { transition: none; }
   .has-hand-lock .sign-brackets { transform: none; filter: none; }
   .sign-speech-wave.is-speaking i { animation: none; }
 }
-.sign-stage { scroll-padding-block: 24px calc(96px + env(safe-area-inset-bottom)); padding-bottom: calc(100px + env(safe-area-inset-bottom)); }
 .sign-token-count, .sign-transcript-placeholder, .sign-edit-label > span, .sign-output-note { color: var(--ink-soft); }
 .dock-item:focus-visible, .sign-stage :is(button, a, input, textarea, select):focus-visible { outline-color: var(--foreground); }
 .sign-viewfinder button:focus-visible { outline-color: var(--lime); }
@@ -200,7 +211,7 @@
   .sign-stage { clip-path: none !important; }
   .dock-ripple { display: none; }
 }
-.sign-recognition-modes { display: inline-flex; flex-wrap: wrap; gap: 5px; margin: 8px 0 0; padding: 4px; border: 1px solid var(--border); border-radius: 999px; }
+.sign-recognition-modes { display: inline-flex; flex-wrap: wrap; gap: 5px; margin: 0; padding: 3px; border: 1px solid var(--border); border-radius: 999px; }
 .sign-recognition-modes button { min-height: 40px; padding: 9px 14px; border: 0; border-radius: 999px; background: transparent; color: var(--ink-soft); font-size: .7rem; cursor: pointer; }
 .sign-recognition-modes button[aria-pressed="true"] { background: var(--foreground); color: var(--background); }
 .sign-recognition-modes button span { margin-left: 4px; font-size: .55rem; }
@@ -211,8 +222,51 @@
 .sign-ready-signs { margin-top: 8px; }
 .sign-personalize { align-self: start; }
 .sign-personalize .sign-dataset-actions { margin-top: 10px; }
-.sign-transcript-feedback { display: flex; align-items: center; gap: 8px; margin: 4px 0 15px; color: var(--ink-soft); font-size: .75rem; line-height: 1.5; }
+.sign-transcript-feedback { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; color: var(--ink-soft); font-size: .75rem; line-height: 1.5; }
+.sign-transcript-feedback .dock-live-dot { position: static; flex-shrink: 0; }
+.sign-workspace-settings { max-width: 1080px; margin: 10px auto 0; font-size: .78rem; }
+.sign-workspace-settings > summary { min-height: 36px; padding: 8px 0; cursor: pointer; }
+.sign-avatar-toggle { display: flex; align-items: center; gap: 8px; font-size: .75rem; }
+.sign-workspace-error { max-width: 1080px; margin: 8px auto; font-size: .78rem; }
+.sign-workspace-error button, .sign-vocabulary-coverage button { padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); cursor: pointer; }
+.sign-vocabulary-coverage { padding: 14px; border: 1px solid var(--border); border-radius: 12px; line-height: 1.6; }
+.sign-vocabulary-coverage summary { cursor: pointer; }
+.sign-vocabulary-coverage p { margin: 10px 0; }
+.sign-vocabulary-coverage label { display: grid; gap: 5px; margin: 12px 0; }
+.sign-vocabulary-coverage input { width: 100%; min-height: 44px; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--background); }
+.sign-coverage-list { max-height: 340px; overflow: auto; margin-bottom: 12px; }
+.sign-coverage-list > div { display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.sign-coverage-list span { color: var(--ink-soft); }
+.sign-stage.is-expanded, .sign-stage:fullscreen { z-index: 60; padding-bottom: max(14px, env(safe-area-inset-bottom)); scroll-padding-bottom: 16px; background: var(--background); }
+.sign-stage.is-expanded .sign-viewfinder { height: clamp(250px, calc(100dvh - 380px), 740px); }
+body:has(.sign-stage.is-expanded) .mode-dock, body:has(.sign-stage.is-expanded) .sign-avatar-pip { visibility: hidden; }
+@media (max-width: 760px) {
+  .sign-coverage-list > div { grid-template-columns: 1fr 1fr; }
+  .sign-coverage-list > div > span:last-child { grid-column: 1 / -1; }
+  .sign-transcript h3 { font-size: 1.25rem; }
+}
+@media (max-height: 740px) {
+  .sign-message-icon { display: none; }
+}
 .sign-suggestions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 0; }
 .sign-suggestions > span { flex: 1 0 100%; color: var(--ink-soft); font-size: .7rem; }
 .sign-suggestions button { display: flex; align-items: center; gap: 9px; min-height: 44px; padding: 9px 12px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface); color: var(--foreground); cursor: pointer; font-size: .75rem; }
 .sign-suggestions small { color: var(--ink-soft); font-size: .6rem; }
+.sign-suggestions { max-height: 100px; overflow-y: auto; padding: 6px 0; }
+.sign-stage.has-suggestions .sign-viewfinder { height: clamp(210px, calc(100dvh - 575px), 500px); }
+.sign-framing-advice { display: block; margin-top: 4px; color: var(--lime); font-size: .72rem; }
+.sign-last-sign { flex: 1; min-width: 0; overflow: hidden; color: var(--ink-soft); font-size: .7rem; text-align: right; text-overflow: ellipsis; white-space: nowrap; }
+.sign-last-sign strong { color: var(--foreground); }
+.sign-event-list { margin-top: 12px; color: var(--ink-soft); font-size: .68rem; }
+.sign-event-list > p { margin: 0 0 6px; }
+.sign-event-list ul { max-height: 168px; margin: 0; padding: 0; overflow-y: auto; list-style: none; }
+.sign-event-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding: 7px 0; border-top: 1px solid var(--border); }
+.sign-event-list li strong { color: var(--foreground); font: 600 .85rem ui-monospace, monospace; }
+.sign-event-list li span { flex: 1; min-width: 12em; }
+.sign-event-list button, .sign-cleaned-actions button { display: flex; align-items: center; gap: 5px; min-height: 40px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 7px; background: transparent; color: var(--ink-soft); font-size: .7rem; cursor: pointer; }
+.sign-event-list button:hover, .sign-cleaned-actions button:hover:not(:disabled) { color: var(--foreground); background: var(--surface); }
+.sign-cleaned-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+.sign-cleaned .sign-cleaned-warning { color: var(--foreground); font-size: .75rem; }
+@media (pointer: coarse), (max-width: 760px) {
+  .sign-event-list button, .sign-cleaned-actions button { min-height: 44px; }
+}

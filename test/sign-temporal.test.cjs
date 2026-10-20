@@ -12,7 +12,7 @@ function load(name) {
 }
 const { temporalFrame, temporalEmbedding, TEMPORAL_FEATURE_SIZE } = load('temporal-features')
 const { TemporalWordRecognizer } = load('temporal-recognizer')
-const { TemporalForest } = load('temporal-forest')
+const { TemporalForest, chooseWindow } = load('temporal-forest')
 const { emptyWordDataset } = load('word-data')
 const hand = t => Array.from({ length: 21 }, (_, i) => ({ x: .3+t*.08+i*.003, y: .5-i*.012, z: i*.001 }))
 const manifest = { vocabulary: ['YES'], trainingObservations: 2000 }
@@ -136,6 +136,28 @@ test('forest validates its structure and rejects malformed frame vectors', () =>
   assert.equal(forest.predict([NaN]).label, null)
   assert.throws(() => new TemporalForest({ ...model, nodeCount: 2 }, new Float32Array(10)))
   assert.throws(() => new TemporalForest(model, new Float32Array([0,0,12,12,0,1,1,0,1,0])))
+})
+
+test('only classes with calibration evidence auto-accept; others stay suggestions', () => {
+  const model = { version: 1, features: 'hand-temporal-stats-v1', featureLength: TEMPORAL_FEATURE_SIZE, nodeWidth: 10, nodeCount: 1, roots: [0],
+    labels: ['YES','YOUR','__NONE__'], threshold: .55, margin: .15, autoAccept: ['YES'] }
+  const frame = Array(TEMPORAL_FEATURE_SIZE).fill(0)
+  assert.equal(new TemporalForest(model, new Float32Array([-2,-2,-1,-1,0,.9,1,.1,2,0])).predict(frame).label, 'YES')
+  const unvalidated = new TemporalForest(model, new Float32Array([-2,-2,-1,-1,1,.9,0,.1,2,0])).predict(frame)
+  assert.equal(unvalidated.label, null)
+  assert.equal(unvalidated.candidates.map(candidate => candidate.label).join(), 'YOUR')
+  assert.throws(() => new TemporalForest({ ...model, autoAccept: ['WATER'] }, new Float32Array([-2,-2,-1,-1,0,.9,1,.1,2,0])))
+})
+
+test('a short tail window cannot outvote the whole sign with a different word', () => {
+  const result = (label, top, confidence) => ({ label, top, confidence, candidates: [{ label: top, confidence }] })
+  // The held-out YES whose 0.6 s ending looked like YOUR (docs/camera-stage-5.md).
+  const fragment = chooseWindow([result('YOUR', 'YOUR', .68), result(null, 'YES', .37), result(null, 'YES', .45)])
+  assert.equal(fragment.label, null)
+  assert.equal(fragment.candidates[0].label, 'YOUR', 'it can still be offered for confirmation')
+  assert.equal(chooseWindow([result('YES', 'YES', .7), result(null, 'YES', .5)]).label, 'YES')
+  assert.equal(chooseWindow([result(null, 'NO', .3), result('YES', 'YES', .6), result('YES', 'YES', .8)]).confidence, .8)
+  assert.equal(chooseWindow([]).label, null)
 })
 
 test('confirming a suggestion prevents a queued automatic duplicate', () => {

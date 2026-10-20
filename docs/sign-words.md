@@ -1,4 +1,40 @@
-# Words Beta — local sequence matching
+# Word recognition — current behavior and original DTW notes
+
+The camera now defaults to **Auto Preview**, with explicit confirmation of typed
+word/letter/number proposals. Isolated Words remains an override. Body/face
+tracking adds observations and framing, while the existing classifier retains
+its hand-only feature format. See [stages 3–4](camera-stages-3-4.md). The "current
+behavior" section below describes the isolated word backend and its data.
+
+## Current behavior, 20 October 2026
+
+Word mode loads the shipped temporal forest automatically: 152 of the avatar's
+164 entries, representing 150 distinct model classes. The remaining twelve
+entries need personal recordings. Only the 52 classes with calibration evidence
+commit automatically; the others are tap-to-add suggestions
+([stage 5](camera-stage-5.md)). All 164 entries are available in the word
+studio. Personal templates supplement/override their trained baseline classes.
+Completed trained motions reach the transcript after finish/release; they do
+not need the old additional 700ms letter hold. The app's thumbs-up YES shortcut
+uses a stable 500ms detection; its ISL variant review remains pending.
+
+The live transcript now sits immediately below the camera. Fullscreen includes
+the transcript and controls, with an expanded fallback. Vocabulary and personal
+recording controls are under **Vocabulary, help & personal recordings**. The
+searchable coverage report distinguishes trained data from animation-only and
+personal-training availability. See [stages 1–2](camera-stages-1-2.md),
+[coverage](sign-vocabulary-coverage.md) and
+[source data and limits](../public/models/SIGN-DATA.md).
+
+Words and static fingerspelling still use separate recognizers. Unified automatic
+arbitration and body/face input belong to later stages. Model coverage is not
+evidence that every avatar motion matches a learned sign variant.
+
+## Historical DTW implementation notes
+
+The remainder documents the original, unbundled DTW implementation and its
+historical verification. Its zero-pretrained-word count, 20-slot vocabulary and
+additional 700ms word hold do not describe the current temporal-forest path.
 
 The optional v2 path is implemented alongside the existing static letters/numbers.
 It provides 20 selectable word training slots, not 20 pretrained ISL translations.

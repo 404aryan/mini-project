@@ -5,7 +5,7 @@
 const { spawnSync } = require('node:child_process')
 const path = require('node:path')
 
-const checks = ['landing-account-speech', 'translation', 'avatar', 'playback-controls', 'sign-stage', 'word-studio']
+const checks = ['landing-account-speech', 'translation', 'avatar', 'playback-controls', 'sign-stage', 'camera-workspace', 'transcript', 'signer-tracking', 'word-studio']
 const args = process.argv.slice(2)
 let failed = 0
 for (const name of checks) {

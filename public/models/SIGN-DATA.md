@@ -1,13 +1,22 @@
 # Bundled ISL recognition data
 
-Prepared 19 October 2026. These are labelled observations of real signs, not
+Prepared 19 October 2026; retrained and extended on 20 October 2026
+([stage 5](../../docs/camera-stage-5.md)). These are labelled observations of real signs, not
 illustration geometry, invented coordinates, or ASL relabelled as ISL.
 
 ## Letters and numbers
 
-`isl-samples.json`: **3,636 reference poses**, covering **A–Z and 1–9**.
-Digit 0 is not present in the source, so it is not advertised as pretrained.
-Personal examples can still enable it through Training Studio.
+`isl-samples.json`: **3,664 reference poses**, covering **A–Z and 0–9**.
+3,636 come from the source below. Digit 0 is not in that source; its 28
+references (14 photographs and their reflections) come from
+[Hambir et al., A Multimodal Indian Sign Language Dataset for English and Marathi Alphabets, Mendeley Data v1](https://data.mendeley.com/datasets/2tj6c7pzfk/1),
+doi:10.17632/2tj6c7pzfk.1, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+Those samples carry their own `license`, `source` and `attribution` fields,
+which import, storage and export preserve.
+
+That dataset's digit-0 photographs are byte-identical to its letter-O
+photographs, so digit 0 is recognized only in Numbers mode, which compares
+digit references only. Spell and Auto do not offer 0.
 
 Source: [Indian Sign Language (ISL), Prathum Arikeri, version 1](https://www.kaggle.com/datasets/prathumarikeri/indian-sign-language-isl).
 Source and derived landmark dataset license: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
@@ -26,7 +35,8 @@ Source archive SHA-256:
 `6c5cc18850a2581c5b5a070754047478531789bc6f784b4aa4ea2e9bce3fdfd5`.
 Landmarker SHA-256:
 `fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1`.
-Original image paths are recorded in `static-provenance.json`; IDs ending in
+Original image paths are recorded in `static-provenance.json` (the digit-0
+photographs, with SHA-256 hashes, under `additional`); IDs ending in
 `-mirror` derive from the corresponding unmirrored observation.
 
 Rebuild with `python scripts/prepare-sign-data.py`. Downloads and temporary
@@ -34,24 +44,34 @@ evaluation data stay in the git-ignored `.sign-data-cache/` directory.
 
 ## Current Words Beta model
 
-Live Words mode now loads `isl-temporal-model.json` and the 2.95 MB
-`isl-temporal-forest.bin`, rather than the original fixed-duration templates.
-The model contains 96 trained decision trees and covers **152 of the avatar's
-164 vocabulary entries** (151 distinct word classes; BEGIN shares START).
-Training uses real hand tracks, spatial/temporal features, and explicitly
-labelled camera/left-handed augmentations. The corpus has 2,207 real recordings,
-with 1,444 used for training and 763 withheld. The five variants of an observed
-training recording are augmentations, not five independent recordings.
+Live word recognition loads `isl-temporal-model.json` and the 5.24 MB
+`isl-temporal-forest.bin`: 64 trained decision trees covering **152 of the
+avatar's 164 vocabulary entries** (150 distinct word classes; HOUSE shares
+HOME and BEGIN shares START). Training uses real hand tracks, spatial/temporal
+features, and explicitly labelled camera/left-handed augmentations.
 
-The exact deployed float32 forest scored **563/763 (73.8%)** top-choice accuracy
-on withheld source recordings. The automatic acceptance gate accepted 176
-correct and 12 incorrect labels and rejected 575. These are source-domain
-results, not physical-webcam validation. Many dictionary-only classes have only
-one example and no independent evaluation. Words remain experimental.
+The corpus has 10,756 real recordings from all 15 ISL500 signers plus the
+dictionary, INCLUDE and canonical-motion sources, split by signer before
+training: 6,549 train, 1,471 calibration (signers 12 and 13) and 2,736 test
+(signers 4, 5, 14, 15 and separate INCLUDE clips). The five variants of an
+observed training recording are augmentations, not five independent recordings.
+
+Acceptance gates (0.56 confidence, 0.15 margin) and the 52 classes allowed to
+add themselves automatically were chosen on calibration signers only. On the
+untouched test signers, the exact shipped forest with the live trailing
+windows chose the right word for **2,382/2,736 (87.1%)** clips and committed
+**1,146 correct and 19 wrong** (98.4% precision, 41.9% coverage); a rejected
+clip can still be offered as a tap-to-add suggestion. The previous model scored 774 correct
+and 93 wrong on the same signers. Per-class results, confusions and per-signer
+breakdowns are in `word-evaluation.json`; weak classes such as GOOD/OFFICE
+are listed in [stage 5](../../docs/camera-stage-5.md). Dictionary-only classes
+have no independent evaluation and never auto-commit. These are source-domain
+results, not physical-webcam validation. Words remain experimental.
 
 The recognizer considers different movement durations and commits completed
 words after a finish/release, without passing them through the letters' 700 ms
-hold gate. Uncertain candidates appear as **Possible match · tap to add**;
+hold gate. A shorter window counts only when the whole buffered sign has the
+same top word. Uncertain candidates appear as **Possible match · tap to add**;
 they are inserted only after explicit confirmation. Confirmed/committed words
 cannot auto-insert again until the hands are lowered.
 
@@ -66,13 +86,13 @@ The detector is self-hosted as `public/mediapipe/gesture_recognizer.task`:
 
 Sources for the expanded model:
 
-- [ISL500 / ISL-DATA](https://huggingface.co/datasets/ISL500/ISL-DATA): research/academic use only; users 4 and 5 excluded from training.
+- [ISL500 / ISL-DATA](https://huggingface.co/datasets/ISL500/ISL-DATA): research/academic use only; users 4, 5, 12–15 excluded from training.
 - [ISLRTC dictionary re-encode](https://huggingface.co/datasets/Vignesh3816/Indian_Sign_Language_Data.gov_Rencoded): MIT-labelled release, with original ISLRTC/data.gov.in attribution retained.
 - [INCLUDE, AI4Bharat](https://huggingface.co/datasets/ai4bharat/INCLUDE): CC BY 4.0; parent, brother, clothes and park recordings, with separate clip holdouts.
 - [ISL canonical motion v1](https://www.kaggle.com/datasets/hariragavendramg/isl-canonical-motion-v1): CC0-labelled release of ISLRTC-derived coordinates; KEEP source verified against the publisher's checksum audit.
 
 The **combined word weights inherit the research-only ISL500 restriction**.
-`temporal-provenance.json` lists the real sources and signer partitions. For a
+`temporal-provenance.json` lists every real track with its signer, partition and SHA-256. For a
 commercial deployment, retrain from appropriately licensed recordings.
 
 Remaining vocabulary without usable labelled recordings: **NEED, TOILET, TELL,
@@ -117,10 +137,17 @@ cannot report an empty evaluation as a pass:
 
 | Mode | Held-out observations | Accepted correct | Accepted wrong | Rejected |
 | --- | ---: | ---: | ---: | ---: |
-| Static | 350 | 334 | 0 | 16 |
+| Static | 356 | 336 | 0 | 20 |
 | Words Beta | 12 | 4 | 0 | 8 |
 
-This is a source-domain sanity check. Signer identities are not available for
+The same script also scores the second source's other photographs (A–Z and
+1–9 from other participants and another camera): in Spell, 61 of 609 accepted
+correctly, 0 wrongly, 548 rejected (top choice correct for 434); in Numbers,
+41 of 154 digits accepted, 0 wrongly (top choice correct for 149). The bundled
+letters and digits therefore transfer only partly to a new source at the live
+gate.
+
+The held-out rows are a source-domain sanity check. Signer identities are not available for
 the static image source; images may be correlated or augmented. Word holdouts
 are separate source recordings, not a signer-independent test. These numbers
 are not webcam accuracy, accessibility certification, or evidence of broad

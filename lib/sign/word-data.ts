@@ -1,8 +1,8 @@
 import { FEATURE_LENGTH, featureHandCount } from './features'
-import { SUPPORTED_TOKENS } from '../islVocabulary'
+import { WORD_SIGNS } from '../islVocabulary'
 import { readProvenance, sampleProvenance, type Provenance } from './provenance'
 
-export const WORD_LABELS: readonly string[] = SUPPORTED_TOKENS.map(token => token.replaceAll('_', ' '))
+export const WORD_LABELS: readonly string[] = WORD_SIGNS.map(sign => sign.label)
 export const WORD_FRAMES = 30
 export const WORD_FEATURE_LENGTH = FEATURE_LENGTH + 6
 export const WORD_NORMALIZATION = 'sequence-wrist-motion-v1' as const

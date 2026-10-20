@@ -33,6 +33,43 @@ export const SUPPORTED_TOKENS: readonly string[] = [
 
 export const SUPPORTED_TOKEN_SET: ReadonlySet<string> = new Set(SUPPORTED_TOKENS)
 
+/** Text aliases only: these do not assert equivalence of regional sign variants. */
+export const SIGN_TEXT_ALIASES: Readonly<Record<string, readonly string[]>> = {
+  HELLO: ['hi', 'hey'], THANK_YOU: ['thanks', 'thankyou'], I: ['me', 'myself'],
+  MY: ['mine'], YOUR: ['yours'], WAIT_MINUTE: ['wait a minute'],
+}
+
+export type VocabularySign = {
+  id: string; token: string; label: string; kind: 'word' | 'letter' | 'number'
+  aliases: { en: readonly string[]; hi: readonly string[] }
+  animation: { module: string; exportName: string }
+  variant: { reference: string; review: 'needs-ISL-review' }
+  requiredModalities: readonly string[]
+}
+
+export const WORD_SIGNS: readonly VocabularySign[] = SUPPORTED_TOKENS.map(token => ({
+  id: `word:${token}`, token, label: token.replaceAll('_', ' '), kind: 'word',
+  aliases: { en: SIGN_TEXT_ALIASES[token] ?? [], hi: [] },
+  animation: { module: 'components/avatar/animations/words.js', exportName: token },
+  variant: { reference: `Authored avatar:${token}; compare with ISLRTC and Deaf signer`, review: 'needs-ISL-review' },
+  // Full linguistic requirements cannot be established from an English label.
+  requiredModalities: ['hands', 'movement', 'body-location-review-pending', 'non-manual-review-pending'],
+}))
+
+export const STATIC_SIGNS: readonly VocabularySign[] = [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'].map(token => {
+  const kind = /[0-9]/.test(token) ? 'number' : 'letter'
+  return {
+    id: `${kind}:${token}`, token, label: token, kind, aliases: { en: [], hi: [] },
+    animation: { module: `components/avatar/animations/${kind === 'number' ? 'numbers' : 'alphabets'}.js`, exportName: kind === 'number' ? `NUMBER_ANIMATIONS.${token}` : token },
+    variant: { reference: `Authored avatar:${kind}:${token}; compare with source sample`, review: 'needs-ISL-review' },
+    requiredModalities: ['hands', 'movement-review-pending'],
+  }
+})
+
+export const SIGN_VOCABULARY: readonly VocabularySign[] = [...WORD_SIGNS, ...STATIC_SIGNS]
+
+export function readableSignLabel(token: string): string { return token.replaceAll('_', ' ') }
+
 /**
  * A fingerspelling/number instruction: one letter or digit ("B", "7"), or a
  * hyphenated run spelled character by character ("A-M-I-T", "1-1-2"). The

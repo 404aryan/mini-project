@@ -20,7 +20,7 @@ test('a fresh device recognizes bundled ISL letters and numbers even with storag
   const { KnnSignRecognizer } = load('knn-classifier')
   const { dataset } = await readRecognitionDataset()
   const recognizer = new KnnSignRecognizer(); recognizer.replace(dataset)
-  assert.equal(recognizer.labels.join(''), '123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+  assert.equal(recognizer.labels.join(''), '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')
   assert.ok(recognizer.sampleCount >= 1000)
   for (const label of recognizer.labels) {
     assert.ok(dataset.samples.filter(sample => sample.label === label).some(sample => {
@@ -28,6 +28,22 @@ test('a fresh device recognizes bundled ISL letters and numbers even with storag
       return prediction.label === label && prediction.confidence >= .8
     }), `Bundled ${label} must be recognizable without a personal recording`)
   }
+})
+
+test('digit 0 is offered only with Numbers intent, because its photographs are the letter O captures', async () => {
+  const { readRecognitionDataset } = load('sample-store')
+  const { KnnSignRecognizer, spellingLabel, numberLabel } = load('knn-classifier')
+  const { dataset } = await readRecognitionDataset()
+  const spelling = new KnnSignRecognizer(undefined, spellingLabel); spelling.replace(dataset)
+  const numbers = new KnnSignRecognizer(undefined, numberLabel); numbers.replace(dataset)
+  assert.equal(spelling.labels.join(''), '123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+  assert.equal(numbers.labels.join(''), '0123456789')
+  const zero = dataset.samples.find(sample => sample.label === '0')
+  assert.equal(zero.license, 'CC-BY-4.0', 'Each digit-0 sample keeps its own source license')
+  assert.match(zero.source, /data\.mendeley\.com/)
+  assert.notEqual(spelling.predictFeatures(zero.features).label, '0')
+  assert.equal(numbers.predictFeatures(zero.features).label, '0')
+  assert.notEqual(numbers.predictFeatures(dataset.samples.find(sample => sample.label === 'O').features).label, 'O')
 })
 
 test('a full personal library for one sign keeps every other bundled sign', () => {
@@ -41,7 +57,7 @@ test('a full personal library for one sign keeps every other bundled sign', () =
   const kept = baseline.samples.filter(sample => !(sample.label === pose.label && featureHandCount(sample.features) === hands))
   assert.equal(merged.samples.length, 5000 + kept.length, 'Only bundled samples of the same sign and hand count are replaced')
   const recognizer = new KnnSignRecognizer(); recognizer.replace(merged)
-  assert.equal(recognizer.labels.join(''), '123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'No unrelated bundled sign is lost')
+  assert.equal(recognizer.labels.join(''), '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'No unrelated bundled sign is lost')
   const personal = { ...emptyDataset(), samples: local.samples.slice(0, 3) }
   const combined = recognitionDataset(baseline, personal)
   assert.equal(combined.samples.filter(sample => sample.label === pose.label && featureHandCount(sample.features) === hands).length, 3)

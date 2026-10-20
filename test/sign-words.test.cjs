@@ -21,6 +21,11 @@ const { SignStabilizer } = load('stabilizer')
 const { appendRecognizedToken } = load('transcript-tokens')
 const { sentenceRequest } = load('sentence')
 
+test('canonical compound words produce readable transcript text', () => {
+  const result = appendRecognizedToken([], { id: 'thank-you', text: 'THANK_YOU' }, true)
+  assert.equal(result.map(token => token.text).join(''), 'THANK YOU')
+})
+
 // Synthetic geometry tests timing and matching only. These are not real ISL labels
 // and must never be copied to the public data files or the user's browser library.
 const hand = (t = 0, offset = 0) => Array.from({ length: 21 }, (_, i) => ({ x: .2 + .2 * t + offset + (i ? (i % 4 + 1) * .018 : 0), y: .7 + .08 * Math.sin(Math.PI * t) - i * .015, z: i * .001 }))

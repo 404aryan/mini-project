@@ -33,6 +33,20 @@ const hand = (x = .2, shape = 0) => Array.from({ length: 21 }, (_, index) => ({
 const dataset = (samples) => ({ version: 1, normalization: 'wrist-maxdist-v1', samples })
 const samples = (label, features, n = 3) => Array.from({ length: n }, (_, i) => ({ id: `${label}-${i}`, label, features }))
 const p = (label, confidence = .99) => ({ label, confidence })
+
+test('contain preview preserves every edge through letterboxing and mirror changes', () => {
+  const dimensions = [[350, 360, 1280, 720], [1000, 300, 720, 1280], [1920, 600, 1280, 720]]
+  for (const [width, height, videoWidth, videoHeight] of dimensions) {
+    for (const mirrored of [true, false]) {
+      const a = previewPoint({ x: 0, y: 0, z: 0 }, width, height, videoWidth, videoHeight, 'contain', mirrored)
+      const b = previewPoint({ x: 1, y: 1, z: 0 }, width, height, videoWidth, videoHeight, 'contain', mirrored)
+      assert.ok(Math.min(a.x, b.x) >= 0 && Math.max(a.x, b.x) <= width)
+      assert.ok(a.y >= 0 && b.y <= height)
+      assert.ok(Math.abs(Math.abs(b.x - a.x) / (b.y - a.y) - videoWidth / videoHeight) < 1e-9)
+      assert.equal(a.x > b.x, mirrored)
+    }
+  }
+})
 const feed = (stabilizer, label, start, end, confidence = .99) => {
   const commits = []
   for (let time = start; time <= end; time += 34) {

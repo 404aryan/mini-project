@@ -1,0 +1,3111 @@
+{
+ "version": 1,
+ "model": "b9e83de794449a4ede72a0b95e804425b71c32318b003bfad1075d0bf41052d1",
+ "datasetSha256": "f07ac68bd9920c11fb3ab831116a6ef0fb25e4c820beb458b236008fb90f1ed2",
+ "partitions": {
+  "train": [
+   "canonical-dictionary",
+   "dictionary",
+   "include-train",
+   "isl500-1",
+   "isl500-10",
+   "isl500-11",
+   "isl500-2",
+   "isl500-3",
+   "isl500-6",
+   "isl500-7",
+   "isl500-8",
+   "isl500-9"
+  ],
+  "calibration": [
+   "isl500-12",
+   "isl500-13"
+  ],
+  "test": [
+   "isl500-4",
+   "isl500-5",
+   "isl500-14",
+   "isl500-15",
+   "include-test"
+  ]
+ },
+ "gates": {
+  "threshold": 0.56,
+  "margin": 0.15,
+  "chosenOn": "calibration"
+ },
+ "autoAccept": [
+  "AGE",
+  "BAD",
+  "BAG",
+  "BOOK",
+  "BOY",
+  "BREAD",
+  "BUS",
+  "CHILD",
+  "CITY",
+  "CLOSE",
+  "COMPUTER",
+  "DOOR",
+  "FAMILY",
+  "FATHER",
+  "FEEL",
+  "FINISH",
+  "FRIEND",
+  "GIRL",
+  "GIVE",
+  "GO",
+  "GOOD",
+  "HAPPY",
+  "HELLO",
+  "HELP",
+  "HOME",
+  "KEY",
+  "LUNCH",
+  "MAN",
+  "MARKET",
+  "MORNING",
+  "MOTHER",
+  "NEIGHBOR",
+  "NO",
+  "OFFICE",
+  "PAIN",
+  "PLEASE",
+  "POLICE",
+  "READY",
+  "ROAD",
+  "SAD",
+  "SHOP",
+  "SISTER",
+  "TEA",
+  "TEACHER",
+  "TIME",
+  "WAIT",
+  "WALK",
+  "WHICH",
+  "WINDOW",
+  "WORK",
+  "YES",
+  "YOU"
+ ],
+ "calibration": {
+  "observations": 1471,
+  "top1Correct": 1221,
+  "acceptedCorrect": 568,
+  "acceptedWrong": 0,
+  "rejected": 903,
+  "perClass": {
+   "AGAIN": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "AGE": {
+    "observations": 22,
+    "signers": 2,
+    "top1Correct": 20,
+    "acceptedCorrect": 16,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "ANGRY": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "ANSWER": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "ASK": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "BAD": {
+    "observations": 20,
+    "signers": 2,
+    "top1Correct": 18,
+    "acceptedCorrect": 7,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "BAG": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 14,
+    "acceptedCorrect": 13,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "BELIEVE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "BOOK": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 19,
+    "acceptedCorrect": 12,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "BOY": {
+    "observations": 22,
+    "signers": 2,
+    "top1Correct": 19,
+    "acceptedCorrect": 11,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "BREAD": {
+    "observations": 18,
+    "signers": 2,
+    "top1Correct": 13,
+    "acceptedCorrect": 5,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "BREAKFAST": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "BROTHER": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "BUS": {
+    "observations": 17,
+    "signers": 2,
+    "top1Correct": 7,
+    "acceptedCorrect": 3,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "CAR": {
+    "observations": 22,
+    "signers": 2,
+    "top1Correct": 17,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "CHAIR": {
+    "observations": 22,
+    "signers": 2,
+    "top1Correct": 19,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "CHANGE": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 17,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "CHILD": {
+    "observations": 18,
+    "signers": 2,
+    "top1Correct": 13,
+    "acceptedCorrect": 7,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "CITY": {
+    "observations": 19,
+    "signers": 2,
+    "top1Correct": 16,
+    "acceptedCorrect": 1,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "CLASS": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "CLOSE": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 21,
+    "acceptedCorrect": 18,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "CLOTHES": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "COFFEE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "COLLEGE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "COME": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "COMPUTER": {
+    "observations": 22,
+    "signers": 2,
+    "top1Correct": 21,
+    "acceptedCorrect": 13,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "CONFUSED": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "DANGER": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "DINNER": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "DO": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "DOCTOR": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 19,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "DOOR": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 20,
+    "acceptedCorrect": 16,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "DRINK": {
+    "observations": 22,
+    "signers": 2,
+    "top1Correct": 19,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "EARLY": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "EAT": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 6,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "EMERGENCY": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "EXAM": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "FAMILY": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 19,
+    "acceptedCorrect": 10,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "FATHER": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 17,
+    "acceptedCorrect": 11,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "FEEL": {
+    "observations": 20,
+    "signers": 2,
+    "top1Correct": 19,
+    "acceptedCorrect": 14,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "FINISH": {
+    "observations": 22,
+    "signers": 2,
+    "top1Correct": 15,
+    "acceptedCorrect": 3,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "FOOD": {
+    "observations": 20,
+    "signers": 2,
+    "top1Correct": 15,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "FORGET": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "FRIEND": {
+    "observations": 20,
+    "signers": 2,
+    "top1Correct": 18,
+    "acceptedCorrect": 11,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "FRUIT": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "GIRL": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 16,
+    "acceptedCorrect": 8,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "GIVE": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 12,
+    "acceptedCorrect": 4,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "GO": {
+    "observations": 23,
+    "signers": 2,
+    "top1Correct": 22,
+    "acceptedCorrect": 16,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "GOOD": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 16,
+    "acceptedCorrect": 15,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "HAPPY": {
+    "observations": 18,
+    "signers": 2,
+    "top1Correct": 14,
+    "acceptedCorrect": 7,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "HELLO": {
+    "observations": 19,
+    "signers": 2,
+    "top1Correct": 18,
+    "acceptedCorrect": 12,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "HELP": {
+    "observations": 20,
+    "signers": 2,
+    "top1Correct": 20,
+    "acceptedCorrect": 11,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "HOME": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 16,
+    "acceptedCorrect": 12,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "HOSPITAL": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "HOW_MANY": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "I": {
+    "observations": 19,
+    "signers": 2,
+    "top1Correct": 14,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "IMPORTANT": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "KEEP": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "KEY": {
+    "observations": 20,
+    "signers": 2,
+    "top1Correct": 18,
+    "acceptedCorrect": 13,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "KNOW": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "LATE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "LEARN": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "LIKE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "LISTEN": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "LIVE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "LOOK": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "LOVE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "LUNCH": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 16,
+    "acceptedCorrect": 7,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "MAKE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "MAN": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 17,
+    "acceptedCorrect": 6,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "MARKET": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 20,
+    "acceptedCorrect": 1,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "MEET": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "MILK": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "MOBILE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "MONEY": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "MORNING": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 16,
+    "acceptedCorrect": 9,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "MOTHER": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 19,
+    "acceptedCorrect": 13,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "MY": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "NAME": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "NEIGHBOR": {
+    "observations": 22,
+    "signers": 2,
+    "top1Correct": 20,
+    "acceptedCorrect": 10,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "NO": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 21,
+    "acceptedCorrect": 21,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "OFFICE": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 20,
+    "acceptedCorrect": 12,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "OPEN": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 19,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "PAIN": {
+    "observations": 19,
+    "signers": 2,
+    "top1Correct": 14,
+    "acceptedCorrect": 9,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "PARENT": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "PARK": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "PERSON": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "PHONE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "PLAY": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "PLEASE": {
+    "observations": 20,
+    "signers": 2,
+    "top1Correct": 12,
+    "acceptedCorrect": 5,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "POLICE": {
+    "observations": 22,
+    "signers": 2,
+    "top1Correct": 22,
+    "acceptedCorrect": 13,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "QUESTION": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "READ": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "READY": {
+    "observations": 20,
+    "signers": 2,
+    "top1Correct": 16,
+    "acceptedCorrect": 10,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "RECEIVE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "REMEMBER": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "RICE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "ROAD": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 21,
+    "acceptedCorrect": 13,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "ROOM": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "RUN": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "SAD": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 20,
+    "acceptedCorrect": 7,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "SAFE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "SCARED": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "SCHOOL": {
+    "observations": 22,
+    "signers": 2,
+    "top1Correct": 18,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "SEE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "SEND": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "SHOP": {
+    "observations": 20,
+    "signers": 2,
+    "top1Correct": 17,
+    "acceptedCorrect": 13,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "SHOW": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "SISTER": {
+    "observations": 20,
+    "signers": 2,
+    "top1Correct": 19,
+    "acceptedCorrect": 11,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "SIT": {
+    "observations": 20,
+    "signers": 2,
+    "top1Correct": 9,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "SLEEP": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "SORRY": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "STAND": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "START": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "STOP": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "STUDENT": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 19,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "STUDY": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "TABLE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "TAKE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "TALK": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "TEA": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 17,
+    "acceptedCorrect": 8,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "TEACHER": {
+    "observations": 20,
+    "signers": 2,
+    "top1Correct": 20,
+    "acceptedCorrect": 14,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "THANK_YOU": {
+    "observations": 22,
+    "signers": 2,
+    "top1Correct": 3,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "THINK": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "TIME": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 16,
+    "acceptedCorrect": 12,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "TIRED": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "TRAIN": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "TRY": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "UNDERSTAND": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "USE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "VEGETABLE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "VILLAGE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WAIT": {
+    "observations": 20,
+    "signers": 2,
+    "top1Correct": 20,
+    "acceptedCorrect": 7,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WALK": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 21,
+    "acceptedCorrect": 14,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WANT": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WATER": {
+    "observations": 20,
+    "signers": 2,
+    "top1Correct": 13,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WELCOME": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WHAT": {
+    "observations": 20,
+    "signers": 2,
+    "top1Correct": 13,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WHEN": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WHERE": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 18,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WHICH": {
+    "observations": 22,
+    "signers": 2,
+    "top1Correct": 21,
+    "acceptedCorrect": 18,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WHO": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WHY": {
+    "observations": 22,
+    "signers": 2,
+    "top1Correct": 15,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WINDOW": {
+    "observations": 19,
+    "signers": 2,
+    "top1Correct": 19,
+    "acceptedCorrect": 15,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WOMAN": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 21,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WORK": {
+    "observations": 22,
+    "signers": 2,
+    "top1Correct": 22,
+    "acceptedCorrect": 20,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WRITE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "YES": {
+    "observations": 20,
+    "signers": 2,
+    "top1Correct": 19,
+    "acceptedCorrect": 16,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "YOU": {
+    "observations": 24,
+    "signers": 2,
+    "top1Correct": 21,
+    "acceptedCorrect": 15,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "YOUR": {
+    "observations": 21,
+    "signers": 2,
+    "top1Correct": 20,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   }
+  },
+  "confusions": [
+   {
+    "expected": "EAT",
+    "predicted": "FOOD",
+    "count": 13
+   },
+   {
+    "expected": "BUS",
+    "predicted": "CAR",
+    "count": 8
+   },
+   {
+    "expected": "THANK_YOU",
+    "predicted": "HAPPY",
+    "count": 8
+   },
+   {
+    "expected": "THANK_YOU",
+    "predicted": "SCHOOL",
+    "count": 8
+   },
+   {
+    "expected": "BAG",
+    "predicted": "WALK",
+    "count": 7
+   },
+   {
+    "expected": "SIT",
+    "predicted": "CHAIR",
+    "count": 7
+   },
+   {
+    "expected": "WHAT",
+    "predicted": "WHY",
+    "count": 6
+   },
+   {
+    "expected": "TIME",
+    "predicted": "YOU",
+    "count": 4
+   },
+   {
+    "expected": "PLEASE",
+    "predicted": "WHAT",
+    "count": 4
+   },
+   {
+    "expected": "WATER",
+    "predicted": "DRINK",
+    "count": 4
+   },
+   {
+    "expected": "FINISH",
+    "predicted": "MARKET",
+    "count": 4
+   },
+   {
+    "expected": "CAR",
+    "predicted": "BUS",
+    "count": 4
+   },
+   {
+    "expected": "TEA",
+    "predicted": "OFFICE",
+    "count": 4
+   },
+   {
+    "expected": "MAN",
+    "predicted": "WATER",
+    "count": 4
+   },
+   {
+    "expected": "GIRL",
+    "predicted": "WOMAN",
+    "count": 4
+   },
+   {
+    "expected": "SIT",
+    "predicted": "CHANGE",
+    "count": 4
+   },
+   {
+    "expected": "CHANGE",
+    "predicted": "POLICE",
+    "count": 4
+   },
+   {
+    "expected": "GOOD",
+    "predicted": "SIT",
+    "count": 3
+   },
+   {
+    "expected": "DRINK",
+    "predicted": "WATER",
+    "count": 3
+   },
+   {
+    "expected": "FOOD",
+    "predicted": "EAT",
+    "count": 3
+   },
+   {
+    "expected": "SCHOOL",
+    "predicted": "BOOK",
+    "count": 3
+   },
+   {
+    "expected": "WHERE",
+    "predicted": "WHICH",
+    "count": 3
+   },
+   {
+    "expected": "CHILD",
+    "predicted": "STUDENT",
+    "count": 3
+   },
+   {
+    "expected": "I",
+    "predicted": "DOCTOR",
+    "count": 3
+   },
+   {
+    "expected": "MORNING",
+    "predicted": "WAIT",
+    "count": 3
+   },
+   {
+    "expected": "PLEASE",
+    "predicted": "FOOD",
+    "count": 2
+   },
+   {
+    "expected": "EAT",
+    "predicted": "MORNING",
+    "count": 2
+   },
+   {
+    "expected": "WATER",
+    "predicted": "YOUR",
+    "count": 2
+   },
+   {
+    "expected": "GIVE",
+    "predicted": "MORNING",
+    "count": 2
+   },
+   {
+    "expected": "DOCTOR",
+    "predicted": "I",
+    "count": 2
+   },
+   {
+    "expected": "BOOK",
+    "predicted": "MARKET",
+    "count": 2
+   },
+   {
+    "expected": "WHY",
+    "predicted": "WHAT",
+    "count": 2
+   },
+   {
+    "expected": "WHY",
+    "predicted": "MARKET",
+    "count": 2
+   },
+   {
+    "expected": "BUS",
+    "predicted": "MARKET",
+    "count": 2
+   },
+   {
+    "expected": "BREAD",
+    "predicted": "NEIGHBOR",
+    "count": 2
+   },
+   {
+    "expected": "LUNCH",
+    "predicted": "WAIT",
+    "count": 2
+   },
+   {
+    "expected": "LUNCH",
+    "predicted": "EAT",
+    "count": 2
+   },
+   {
+    "expected": "CHAIR",
+    "predicted": "SIT",
+    "count": 2
+   },
+   {
+    "expected": "KEY",
+    "predicted": "MAN",
+    "count": 2
+   },
+   {
+    "expected": "FRIEND",
+    "predicted": "CHANGE",
+    "count": 2
+   }
+  ]
+ },
+ "test": {
+  "observations": 2736,
+  "top1Correct": 2382,
+  "acceptedCorrect": 1146,
+  "acceptedWrong": 19,
+  "rejected": 1571,
+  "previousGates": {
+   "observations": 2736,
+   "top1Correct": 2382,
+   "acceptedCorrect": 1523,
+   "acceptedWrong": 66,
+   "rejected": 1147
+  },
+  "split": "Signer-disjoint: isl500-4, isl500-5, isl500-14, isl500-15 plus separate INCLUDE clips; gates and auto-accept classes chosen on isl500-12 and isl500-13 only.",
+  "note": "Exact shipped float32 forest, scored with the live trailing windows. Dictionary-only classes have no independent evaluation and never auto-accept.",
+  "perClass": {
+   "AGAIN": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "AGE": {
+    "observations": 41,
+    "signers": 4,
+    "top1Correct": 32,
+    "acceptedCorrect": 23,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "ANGRY": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "ANSWER": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "ASK": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "BAD": {
+    "observations": 41,
+    "signers": 4,
+    "top1Correct": 40,
+    "acceptedCorrect": 27,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "BAG": {
+    "observations": 38,
+    "signers": 4,
+    "top1Correct": 38,
+    "acceptedCorrect": 37,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "BELIEVE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "BOOK": {
+    "observations": 39,
+    "signers": 4,
+    "top1Correct": 36,
+    "acceptedCorrect": 17,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "BOY": {
+    "observations": 38,
+    "signers": 4,
+    "top1Correct": 34,
+    "acceptedCorrect": 21,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "BREAD": {
+    "observations": 37,
+    "signers": 4,
+    "top1Correct": 29,
+    "acceptedCorrect": 20,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "BREAKFAST": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "BROTHER": {
+    "observations": 1,
+    "signers": 1,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "BUS": {
+    "observations": 38,
+    "signers": 4,
+    "top1Correct": 27,
+    "acceptedCorrect": 12,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "CAR": {
+    "observations": 38,
+    "signers": 4,
+    "top1Correct": 36,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "CHAIR": {
+    "observations": 39,
+    "signers": 4,
+    "top1Correct": 32,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "CHANGE": {
+    "observations": 39,
+    "signers": 4,
+    "top1Correct": 38,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "CHILD": {
+    "observations": 41,
+    "signers": 4,
+    "top1Correct": 34,
+    "acceptedCorrect": 17,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "CITY": {
+    "observations": 39,
+    "signers": 4,
+    "top1Correct": 28,
+    "acceptedCorrect": 10,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "CLASS": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "CLOSE": {
+    "observations": 39,
+    "signers": 4,
+    "top1Correct": 38,
+    "acceptedCorrect": 34,
+    "acceptedWrong": 1,
+    "falseAccepts": 0
+   },
+   "CLOTHES": {
+    "observations": 1,
+    "signers": 1,
+    "top1Correct": 1,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "COFFEE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "COLLEGE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "COME": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "COMPUTER": {
+    "observations": 36,
+    "signers": 4,
+    "top1Correct": 34,
+    "acceptedCorrect": 24,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "CONFUSED": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "DANGER": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "DINNER": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "DO": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "DOCTOR": {
+    "observations": 38,
+    "signers": 4,
+    "top1Correct": 33,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "DOOR": {
+    "observations": 38,
+    "signers": 4,
+    "top1Correct": 38,
+    "acceptedCorrect": 33,
+    "acceptedWrong": 0,
+    "falseAccepts": 1
+   },
+   "DRINK": {
+    "observations": 40,
+    "signers": 4,
+    "top1Correct": 24,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "EARLY": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "EAT": {
+    "observations": 38,
+    "signers": 4,
+    "top1Correct": 13,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "EMERGENCY": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "EXAM": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "FAMILY": {
+    "observations": 39,
+    "signers": 4,
+    "top1Correct": 38,
+    "acceptedCorrect": 7,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "FATHER": {
+    "observations": 40,
+    "signers": 4,
+    "top1Correct": 35,
+    "acceptedCorrect": 23,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "FEEL": {
+    "observations": 39,
+    "signers": 4,
+    "top1Correct": 32,
+    "acceptedCorrect": 24,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "FINISH": {
+    "observations": 38,
+    "signers": 4,
+    "top1Correct": 38,
+    "acceptedCorrect": 19,
+    "acceptedWrong": 0,
+    "falseAccepts": 1
+   },
+   "FOOD": {
+    "observations": 39,
+    "signers": 4,
+    "top1Correct": 26,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "FORGET": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "FRIEND": {
+    "observations": 39,
+    "signers": 4,
+    "top1Correct": 37,
+    "acceptedCorrect": 20,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "FRUIT": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "GIRL": {
+    "observations": 38,
+    "signers": 4,
+    "top1Correct": 32,
+    "acceptedCorrect": 22,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "GIVE": {
+    "observations": 35,
+    "signers": 4,
+    "top1Correct": 20,
+    "acceptedCorrect": 4,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "GO": {
+    "observations": 38,
+    "signers": 4,
+    "top1Correct": 34,
+    "acceptedCorrect": 21,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "GOOD": {
+    "observations": 38,
+    "signers": 4,
+    "top1Correct": 38,
+    "acceptedCorrect": 34,
+    "acceptedWrong": 0,
+    "falseAccepts": 10
+   },
+   "HAPPY": {
+    "observations": 36,
+    "signers": 4,
+    "top1Correct": 31,
+    "acceptedCorrect": 11,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "HELLO": {
+    "observations": 37,
+    "signers": 4,
+    "top1Correct": 37,
+    "acceptedCorrect": 29,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "HELP": {
+    "observations": 38,
+    "signers": 4,
+    "top1Correct": 35,
+    "acceptedCorrect": 18,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "HOME": {
+    "observations": 37,
+    "signers": 4,
+    "top1Correct": 33,
+    "acceptedCorrect": 27,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "HOSPITAL": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "HOW_MANY": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "I": {
+    "observations": 32,
+    "signers": 4,
+    "top1Correct": 28,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "IMPORTANT": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "KEEP": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "KEY": {
+    "observations": 38,
+    "signers": 4,
+    "top1Correct": 21,
+    "acceptedCorrect": 14,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "KNOW": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "LATE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "LEARN": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "LIKE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "LISTEN": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "LIVE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "LOOK": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "LOVE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "LUNCH": {
+    "observations": 36,
+    "signers": 4,
+    "top1Correct": 36,
+    "acceptedCorrect": 30,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "MAKE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "MAN": {
+    "observations": 37,
+    "signers": 4,
+    "top1Correct": 35,
+    "acceptedCorrect": 14,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "MARKET": {
+    "observations": 37,
+    "signers": 4,
+    "top1Correct": 36,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "MEET": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "MILK": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "MOBILE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "MONEY": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "MORNING": {
+    "observations": 39,
+    "signers": 4,
+    "top1Correct": 37,
+    "acceptedCorrect": 17,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "MOTHER": {
+    "observations": 40,
+    "signers": 4,
+    "top1Correct": 39,
+    "acceptedCorrect": 35,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "MY": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "NAME": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "NEIGHBOR": {
+    "observations": 39,
+    "signers": 4,
+    "top1Correct": 38,
+    "acceptedCorrect": 26,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "NO": {
+    "observations": 39,
+    "signers": 4,
+    "top1Correct": 36,
+    "acceptedCorrect": 30,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "OFFICE": {
+    "observations": 39,
+    "signers": 4,
+    "top1Correct": 29,
+    "acceptedCorrect": 15,
+    "acceptedWrong": 9,
+    "falseAccepts": 5
+   },
+   "OPEN": {
+    "observations": 36,
+    "signers": 4,
+    "top1Correct": 26,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 2,
+    "falseAccepts": 0
+   },
+   "PAIN": {
+    "observations": 39,
+    "signers": 4,
+    "top1Correct": 38,
+    "acceptedCorrect": 31,
+    "acceptedWrong": 0,
+    "falseAccepts": 1
+   },
+   "PARENT": {
+    "observations": 1,
+    "signers": 1,
+    "top1Correct": 1,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "PARK": {
+    "observations": 1,
+    "signers": 1,
+    "top1Correct": 1,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "PERSON": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "PHONE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "PLAY": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "PLEASE": {
+    "observations": 37,
+    "signers": 4,
+    "top1Correct": 31,
+    "acceptedCorrect": 16,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "POLICE": {
+    "observations": 36,
+    "signers": 4,
+    "top1Correct": 35,
+    "acceptedCorrect": 26,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "QUESTION": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "READ": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "READY": {
+    "observations": 39,
+    "signers": 4,
+    "top1Correct": 39,
+    "acceptedCorrect": 26,
+    "acceptedWrong": 0,
+    "falseAccepts": 1
+   },
+   "RECEIVE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "REMEMBER": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "RICE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "ROAD": {
+    "observations": 39,
+    "signers": 4,
+    "top1Correct": 39,
+    "acceptedCorrect": 26,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "ROOM": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "RUN": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "SAD": {
+    "observations": 39,
+    "signers": 4,
+    "top1Correct": 39,
+    "acceptedCorrect": 30,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "SAFE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "SCARED": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "SCHOOL": {
+    "observations": 39,
+    "signers": 4,
+    "top1Correct": 32,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "SEE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "SEND": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "SHOP": {
+    "observations": 40,
+    "signers": 4,
+    "top1Correct": 38,
+    "acceptedCorrect": 31,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "SHOW": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "SISTER": {
+    "observations": 39,
+    "signers": 4,
+    "top1Correct": 38,
+    "acceptedCorrect": 21,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "SIT": {
+    "observations": 40,
+    "signers": 4,
+    "top1Correct": 21,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "SLEEP": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "SORRY": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "STAND": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "START": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "STOP": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "STUDENT": {
+    "observations": 39,
+    "signers": 4,
+    "top1Correct": 39,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "STUDY": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "TABLE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "TAKE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "TALK": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "TEA": {
+    "observations": 39,
+    "signers": 4,
+    "top1Correct": 29,
+    "acceptedCorrect": 18,
+    "acceptedWrong": 6,
+    "falseAccepts": 0
+   },
+   "TEACHER": {
+    "observations": 38,
+    "signers": 4,
+    "top1Correct": 34,
+    "acceptedCorrect": 14,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "THANK_YOU": {
+    "observations": 38,
+    "signers": 4,
+    "top1Correct": 24,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "THINK": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "TIME": {
+    "observations": 38,
+    "signers": 4,
+    "top1Correct": 33,
+    "acceptedCorrect": 22,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "TIRED": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "TRAIN": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "TRY": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "UNDERSTAND": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "USE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "VEGETABLE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "VILLAGE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WAIT": {
+    "observations": 40,
+    "signers": 4,
+    "top1Correct": 30,
+    "acceptedCorrect": 19,
+    "acceptedWrong": 1,
+    "falseAccepts": 0
+   },
+   "WALK": {
+    "observations": 40,
+    "signers": 4,
+    "top1Correct": 31,
+    "acceptedCorrect": 11,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WANT": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WATER": {
+    "observations": 38,
+    "signers": 4,
+    "top1Correct": 34,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WELCOME": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WHAT": {
+    "observations": 41,
+    "signers": 4,
+    "top1Correct": 32,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WHEN": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WHERE": {
+    "observations": 40,
+    "signers": 4,
+    "top1Correct": 37,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WHICH": {
+    "observations": 41,
+    "signers": 4,
+    "top1Correct": 37,
+    "acceptedCorrect": 21,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WHO": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WHY": {
+    "observations": 40,
+    "signers": 4,
+    "top1Correct": 34,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WINDOW": {
+    "observations": 37,
+    "signers": 4,
+    "top1Correct": 36,
+    "acceptedCorrect": 24,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WOMAN": {
+    "observations": 39,
+    "signers": 4,
+    "top1Correct": 38,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WORK": {
+    "observations": 40,
+    "signers": 4,
+    "top1Correct": 39,
+    "acceptedCorrect": 36,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "WRITE": {
+    "observations": 0,
+    "signers": 0,
+    "top1Correct": 0,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "YES": {
+    "observations": 37,
+    "signers": 4,
+    "top1Correct": 37,
+    "acceptedCorrect": 33,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "YOU": {
+    "observations": 41,
+    "signers": 4,
+    "top1Correct": 38,
+    "acceptedCorrect": 26,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   },
+   "YOUR": {
+    "observations": 39,
+    "signers": 4,
+    "top1Correct": 36,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "falseAccepts": 0
+   }
+  },
+  "perSigner": {
+   "include-test": {
+    "observations": 4,
+    "top1Correct": 3,
+    "acceptedCorrect": 0,
+    "acceptedWrong": 0,
+    "rejected": 4
+   },
+   "isl500-14": {
+    "observations": 832,
+    "top1Correct": 746,
+    "acceptedCorrect": 309,
+    "acceptedWrong": 5,
+    "rejected": 518
+   },
+   "isl500-15": {
+    "observations": 852,
+    "top1Correct": 771,
+    "acceptedCorrect": 415,
+    "acceptedWrong": 1,
+    "rejected": 436
+   },
+   "isl500-4": {
+    "observations": 709,
+    "top1Correct": 600,
+    "acceptedCorrect": 310,
+    "acceptedWrong": 11,
+    "rejected": 388
+   },
+   "isl500-5": {
+    "observations": 339,
+    "top1Correct": 262,
+    "acceptedCorrect": 112,
+    "acceptedWrong": 2,
+    "rejected": 225
+   }
+  },
+  "confusions": [
+   {
+    "expected": "EAT",
+    "predicted": "FOOD",
+    "count": 23
+   },
+   {
+    "expected": "SIT",
+    "predicted": "CHAIR",
+    "count": 18
+   },
+   {
+    "expected": "DRINK",
+    "predicted": "WATER",
+    "count": 14
+   },
+   {
+    "expected": "FOOD",
+    "predicted": "EAT",
+    "count": 12
+   },
+   {
+    "expected": "BUS",
+    "predicted": "CAR",
+    "count": 11
+   },
+   {
+    "expected": "KEY",
+    "predicted": "I",
+    "count": 10
+   },
+   {
+    "expected": "OFFICE",
+    "predicted": "GOOD",
+    "count": 9
+   },
+   {
+    "expected": "OPEN",
+    "predicted": "FINISH",
+    "count": 9
+   },
+   {
+    "expected": "CHAIR",
+    "predicted": "SIT",
+    "count": 7
+   },
+   {
+    "expected": "CHILD",
+    "predicted": "STUDENT",
+    "count": 7
+   },
+   {
+    "expected": "AGE",
+    "predicted": "MAN",
+    "count": 7
+   },
+   {
+    "expected": "WALK",
+    "predicted": "FRIEND",
+    "count": 7
+   },
+   {
+    "expected": "GIVE",
+    "predicted": "WHAT",
+    "count": 6
+   },
+   {
+    "expected": "TEA",
+    "predicted": "OFFICE",
+    "count": 6
+   },
+   {
+    "expected": "FEEL",
+    "predicted": "HELP",
+    "count": 6
+   },
+   {
+    "expected": "THANK_YOU",
+    "predicted": "HAPPY",
+    "count": 6
+   },
+   {
+    "expected": "WAIT",
+    "predicted": "PAIN",
+    "count": 5
+   },
+   {
+    "expected": "GIVE",
+    "predicted": "WHY",
+    "count": 5
+   },
+   {
+    "expected": "SCHOOL",
+    "predicted": "BOOK",
+    "count": 5
+   },
+   {
+    "expected": "BREAD",
+    "predicted": "POLICE",
+    "count": 5
+   },
+   {
+    "expected": "GIRL",
+    "predicted": "WOMAN",
+    "count": 5
+   },
+   {
+    "expected": "GO",
+    "predicted": "STUDENT",
+    "count": 4
+   },
+   {
+    "expected": "WATER",
+    "predicted": "YOUR",
+    "count": 4
+   },
+   {
+    "expected": "DOCTOR",
+    "predicted": "SAD",
+    "count": 4
+   },
+   {
+    "expected": "WHAT",
+    "predicted": "WHY",
+    "count": 4
+   },
+   {
+    "expected": "CITY",
+    "predicted": "DOOR",
+    "count": 4
+   },
+   {
+    "expected": "KEY",
+    "predicted": "MAN",
+    "count": 4
+   },
+   {
+    "expected": "YOU",
+    "predicted": "TEACHER",
+    "count": 3
+   },
+   {
+    "expected": "WHY",
+    "predicted": "SAD",
+    "count": 3
+   },
+   {
+    "expected": "BOY",
+    "predicted": "MAN",
+    "count": 3
+   },
+   {
+    "expected": "I",
+    "predicted": "DOCTOR",
+    "count": 3
+   },
+   {
+    "expected": "TIME",
+    "predicted": "TEACHER",
+    "count": 2
+   },
+   {
+    "expected": "HELP",
+    "predicted": "FRIEND",
+    "count": 2
+   },
+   {
+    "expected": "PLEASE",
+    "predicted": "THANK_YOU",
+    "count": 2
+   },
+   {
+    "expected": "WAIT",
+    "predicted": "MORNING",
+    "count": 2
+   },
+   {
+    "expected": "WAIT",
+    "predicted": "GO",
+    "count": 2
+   },
+   {
+    "expected": "GIVE",
+    "predicted": "SAD",
+    "count": 2
+   },
+   {
+    "expected": "SCHOOL",
+    "predicted": "HAPPY",
+    "count": 2
+   },
+   {
+    "expected": "WHAT",
+    "predicted": "GIVE",
+    "count": 2
+   },
+   {
+    "expected": "WHY",
+    "predicted": "THANK_YOU",
+    "count": 2
+   }
+  ]
+ },
+ "trainingSigners": {
+  "AGAIN": 1,
+  "AGE": 10,
+  "ANGRY": 1,
+  "ANSWER": 1,
+  "ASK": 1,
+  "BAD": 10,
+  "BAG": 10,
+  "BELIEVE": 1,
+  "BOOK": 10,
+  "BOY": 10,
+  "BREAD": 10,
+  "BREAKFAST": 1,
+  "BROTHER": 1,
+  "BUS": 10,
+  "CAR": 10,
+  "CHAIR": 10,
+  "CHANGE": 10,
+  "CHILD": 10,
+  "CITY": 10,
+  "CLASS": 1,
+  "CLOSE": 10,
+  "CLOTHES": 1,
+  "COFFEE": 1,
+  "COLLEGE": 1,
+  "COME": 1,
+  "COMPUTER": 10,
+  "CONFUSED": 1,
+  "DANGER": 1,
+  "DINNER": 1,
+  "DO": 1,
+  "DOCTOR": 10,
+  "DOOR": 10,
+  "DRINK": 10,
+  "EARLY": 1,
+  "EAT": 10,
+  "EMERGENCY": 1,
+  "EXAM": 1,
+  "FAMILY": 10,
+  "FATHER": 10,
+  "FEEL": 9,
+  "FINISH": 10,
+  "FOOD": 10,
+  "FORGET": 1,
+  "FRIEND": 10,
+  "FRUIT": 1,
+  "GIRL": 10,
+  "GIVE": 10,
+  "GO": 10,
+  "GOOD": 10,
+  "HAPPY": 10,
+  "HELLO": 10,
+  "HELP": 10,
+  "HOME": 10,
+  "HOSPITAL": 1,
+  "HOW_MANY": 1,
+  "I": 10,
+  "IMPORTANT": 1,
+  "KEEP": 1,
+  "KEY": 10,
+  "KNOW": 1,
+  "LATE": 1,
+  "LEARN": 1,
+  "LIKE": 1,
+  "LISTEN": 1,
+  "LIVE": 1,
+  "LOOK": 1,
+  "LOVE": 1,
+  "LUNCH": 10,
+  "MAKE": 1,
+  "MAN": 10,
+  "MARKET": 10,
+  "MEET": 1,
+  "MILK": 1,
+  "MOBILE": 1,
+  "MONEY": 1,
+  "MORNING": 10,
+  "MOTHER": 10,
+  "MY": 1,
+  "NAME": 1,
+  "NEIGHBOR": 10,
+  "NO": 10,
+  "OFFICE": 10,
+  "OPEN": 10,
+  "PAIN": 10,
+  "PARENT": 2,
+  "PARK": 1,
+  "PERSON": 1,
+  "PHONE": 1,
+  "PLAY": 1,
+  "PLEASE": 10,
+  "POLICE": 10,
+  "QUESTION": 1,
+  "READ": 1,
+  "READY": 10,
+  "RECEIVE": 1,
+  "REMEMBER": 1,
+  "RICE": 1,
+  "ROAD": 10,
+  "ROOM": 1,
+  "RUN": 1,
+  "SAD": 10,
+  "SAFE": 1,
+  "SCARED": 1,
+  "SCHOOL": 10,
+  "SEE": 1,
+  "SEND": 1,
+  "SHOP": 10,
+  "SHOW": 1,
+  "SISTER": 10,
+  "SIT": 10,
+  "SLEEP": 1,
+  "SORRY": 1,
+  "STAND": 1,
+  "START": 1,
+  "STOP": 1,
+  "STUDENT": 10,
+  "STUDY": 1,
+  "TABLE": 1,
+  "TAKE": 1,
+  "TALK": 1,
+  "TEA": 10,
+  "TEACHER": 10,
+  "THANK_YOU": 10,
+  "THINK": 1,
+  "TIME": 10,
+  "TIRED": 1,
+  "TRAIN": 1,
+  "TRY": 1,
+  "UNDERSTAND": 1,
+  "USE": 1,
+  "VEGETABLE": 1,
+  "VILLAGE": 1,
+  "WAIT": 10,
+  "WALK": 10,
+  "WANT": 1,
+  "WATER": 10,
+  "WELCOME": 1,
+  "WHAT": 10,
+  "WHEN": 1,
+  "WHERE": 10,
+  "WHICH": 10,
+  "WHO": 1,
+  "WHY": 10,
+  "WINDOW": 10,
+  "WOMAN": 10,
+  "WORK": 10,
+  "WRITE": 1,
+  "YES": 10,
+  "YOU": 10,
+  "YOUR": 10
+ }
+}

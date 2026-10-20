@@ -7274,5 +7274,84 @@
       "id": "isl-arikeri-v1-Z-53",
       "source": "Indian/Z/383.jpg"
     }
+  ],
+  "additional": [
+    {
+      "license": "CC-BY-4.0",
+      "source": "https://data.mendeley.com/datasets/2tj6c7pzfk/1",
+      "attribution": "Hambir, Khandagale, Santosh, Gaikwad, Kadam, Mishra, Kaur, Bobhate, Tejani, Bassir: A Multimodal Indian Sign Language Dataset for English and Marathi Alphabets, Mendeley Data v1, doi:10.17632/2tj6c7pzfk.1; derived MediaPipe landmarks and reflections",
+      "samples": [
+        {
+          "id": "isl-mendeley-v1-0-0",
+          "source": "Dataset/Numbers/RGB/0/8.jpg",
+          "sha256": "3c77a2b9ef2e4dd046f1fa855d6505c243e6f2f137c23017cf1380ec745d2225"
+        },
+        {
+          "id": "isl-mendeley-v1-0-1",
+          "source": "Dataset/Numbers/RGB/0/2.jpg",
+          "sha256": "8b3a2fcfaccbdfd90614df0bcedb808223f64c477b38fabc93e22422fac91daf"
+        },
+        {
+          "id": "isl-mendeley-v1-0-2",
+          "source": "Dataset/Numbers/RGB/0/17.jpg",
+          "sha256": "557b1c353b41b1d567cbe5ca14ab421913098487d7bce329ca280a9c51b28b3c"
+        },
+        {
+          "id": "isl-mendeley-v1-0-3",
+          "source": "Dataset/Numbers/RGB/0/18.jpg",
+          "sha256": "979443784c946d771a2924612256e24fa95128fd244786944fff8bc9b1246899"
+        },
+        {
+          "id": "isl-mendeley-v1-0-4",
+          "source": "Dataset/Numbers/RGB/0/15.jpg",
+          "sha256": "f3548a3553b6a259ee6f5a497bcf494dc5035910f058f05c60c69c0d5dca96bb"
+        },
+        {
+          "id": "isl-mendeley-v1-0-5",
+          "source": "Dataset/Numbers/RGB/0/13.jpg",
+          "sha256": "4a233b127190d4a94e5e57bcd133f7a7188d48c86cd7fcae5d53629973495ba7"
+        },
+        {
+          "id": "isl-mendeley-v1-0-6",
+          "source": "Dataset/Numbers/RGB/0/10.jpg",
+          "sha256": "7f5d8e8224671961a4f8c233c03e5ae38cca88ed137f9b276c0c5b1a68bbcf82"
+        },
+        {
+          "id": "isl-mendeley-v1-0-7",
+          "source": "Dataset/Numbers/RGB/0/20.jpg",
+          "sha256": "57d9e6a3569e9fcd5edc5fa30263072c68f4bc7ea546f4b78df337e57fc8b3e5"
+        },
+        {
+          "id": "isl-mendeley-v1-0-8",
+          "source": "Dataset/Numbers/RGB/0/3.jpg",
+          "sha256": "cc6265547790b8bff90c7101ef83fd36c4baa7a882f14e1a86e710e430ad7498"
+        },
+        {
+          "id": "isl-mendeley-v1-0-9",
+          "source": "Dataset/Numbers/RGB/0/6.jpg",
+          "sha256": "2c565da2681f2d34abd7b8cd243f7ece4b914d86112d58466b016e7cc4164c2e"
+        },
+        {
+          "id": "isl-mendeley-v1-0-10",
+          "source": "Dataset/Numbers/RGB/0/1.jpg",
+          "sha256": "aa15d538a4dba398a633f8353f42d0244eaa3a24123ae7020108139539c6f579"
+        },
+        {
+          "id": "isl-mendeley-v1-0-11",
+          "source": "Dataset/Numbers/RGB/0/12.jpg",
+          "sha256": "dba0819efbcd152a0c39e57d2cb7b4da1d1148a67f4772a48c9b886f0b9b0ce3"
+        },
+        {
+          "id": "isl-mendeley-v1-0-12",
+          "source": "Dataset/Numbers/RGB/0/14.jpg",
+          "sha256": "6dcc2d0e7013ffa5b2f8427c3035450dd7b89b48e263e0a50518fd18a1d07174"
+        },
+        {
+          "id": "isl-mendeley-v1-0-13",
+          "source": "Dataset/Numbers/RGB/0/5.jpg",
+          "sha256": "87abcdc9b055ab32a7546d6c0eb867de316b1137b6255724effa6983d38d5100"
+        }
+      ]
+    }
   ]
 }

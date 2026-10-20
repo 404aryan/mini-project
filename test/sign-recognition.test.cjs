@@ -32,7 +32,7 @@ const dataset = (label) => ({
 
 // Exercise the actual recognition hook, classifier and stabilizer while controlling
 // camera frames and async storage. No browser, network, or saved user data is used.
-function host({ initialKind = 'static', wordRecognizer } = {}) {
+function host({ initialKind = 'static', wordRecognizer, failWordModel = false, bodyTracking = false } = {}) {
   const slots = [], effects = [], reads = [], commits = []
   let cursor = 0, dirty = true, hook, notify, loop, starts = 0
   let active = true, live = true, now = 0, kind = initialKind
@@ -63,13 +63,17 @@ function host({ initialKind = 'static', wordRecognizer } = {}) {
   }
   const exports = {}
   vm.runInNewContext(compile('use-sign-recognition'), {
-    exports, AbortController, Error, navigator: {},
+    exports, AbortController, Error, navigator: {}, performance,
     require(name) {
       if (name === 'react') return react
       if (name === './hand-overlay') return { createHandOverlay: () => ({ draw() {}, clear() {}, destroy() {} }) }
-      if (name === './hand-tracker') return {
+      if (name === './hand-tracker' || name === './signer-tracker') return {
         warmHandTracker: async () => ({}),
         startHandTracking: async (_video, options) => {
+          starts++; loop = options
+          return () => { if (loop === options) loop = null }
+        },
+        startSignerTracking: async (_video, options) => {
           starts++; loop = options
           return () => { if (loop === options) loop = null }
         },
@@ -82,7 +86,10 @@ function host({ initialKind = 'static', wordRecognizer } = {}) {
         readWordRecognitionDataset: () => new Promise((resolve, reject) => reads.push({ resolve, reject })),
         subscribeWordChanges: (fn) => { notify = fn; return () => { notify = null } },
       }
-      if (name === './word-recognizer') return { createTrainedWordRecognizer: () => wordRecognizer ?? new (load('dtw-classifier').DtwSignRecognizer)() }
+      if (name === './word-recognizer') return {
+        createTrainedWordRecognizer: async () => { if (failWordModel) throw new Error('Model unavailable'); return wordRecognizer ?? new (load('dtw-classifier').DtwSignRecognizer)() },
+        createWordRecognizer: () => new (load('dtw-classifier').DtwSignRecognizer)(),
+      }
       return load(name.replace(/^\.\//, ''))
     },
   })
@@ -95,7 +102,7 @@ function host({ initialKind = 'static', wordRecognizer } = {}) {
       while (dirty) {
         assert.ok(count++ < 25, 'Recognition updates must settle')
         dirty = false; cursor = 0
-        hook = exports.useSignRecognition({ active, live, kind, ...refs, onCommit: (token) => commits.push(token) })
+        hook = exports.useSignRecognition({ active, live, kind, bodyTracking, ...refs, onCommit: (token) => commits.push(token) })
         while (effects.length) effects.shift()()
       }
     },
@@ -243,7 +250,48 @@ test('a completed trained word reaches the transcript after release without a le
   assert.equal(h.current.snapshot.candidates[0].label, 'YES')
   h.feed(800, false)
   assert.deepEqual(h.commits.map(token => token.text), ['YES'])
+  const { sign } = h.commits[0]
+  assert.deepEqual([sign.kind, sign.canonical, sign.source, sign.commit, sign.score.value, sign.score.basis], ['word', 'word:YES', 'word-model', 'automatic', .65, 'word model vote share'])
+  assert.ok(sign.endedAt - sign.startedAt >= 800, 'The span covers the signing segment, not only the commit frame')
   h.feed(1500, false)
   assert.equal(h.commits.length, 1, 'Completed word events must not repeat while hands remain lowered')
+  h.unmount()
+})
+
+test('Numbers override rejects letter classifications and reports only digit coverage', async () => {
+  const h = host({ initialKind: 'numbers' }); await h.settle(); await h.resolve('B')
+  h.feed(1800)
+  assert.equal(h.commits.length, 0)
+  assert.equal(h.current.dataset.labels, 0)
+  h.refresh(); await h.resolve('7'); h.feed(1800)
+  assert.deepEqual(h.commits.map(token => token.text), ['7'])
+  assert.equal(h.commits[0].kind, 'number')
+  h.unmount()
+})
+
+test('Auto keeps personal word templates available when the pretrained model fails', async () => {
+  const h = host({ initialKind: 'auto', failWordModel: true }); await h.settle()
+  await h.resolve('B', 0)
+  const personal = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/words-import.json'), 'utf8'))
+  await h.resolveSaved(personal, 1)
+  assert.ok(h.current.dataset.readySigns.includes('HELLO'))
+  assert.ok(h.current.dataset.readySigns.includes('letter:B'))
+  assert.match(h.current.dataset.error, /personal words/)
+  h.unmount()
+  const later = host({ initialKind: 'auto', failWordModel: true }); await later.settle()
+  await later.resolve('B', 0); await later.resolveSaved(load('word-data').emptyWordDataset(), 1)
+  assert.ok(!later.current.dataset.readySigns.includes('HELLO'))
+  later.refresh(); await later.settle(); await later.resolve('B', 2); await later.resolveSaved(personal, 3)
+  assert.ok(later.current.dataset.readySigns.includes('HELLO'), 'adding recordings enables the personal backend without losing static coverage')
+  later.unmount()
+})
+
+test('intent changes reuse signer tracking and reset the character stabilizer', async () => {
+  const h = host({ bodyTracking: true }); await h.settle(); await h.resolve('B'); h.feed(1800)
+  assert.equal(h.starts, 1)
+  await h.setKind('numbers'); await h.resolve('7'); h.feed(1800)
+  assert.equal(h.starts, 1, 'the expensive body/face worker remains running')
+  assert.deepEqual(h.commits.map(token => token.text), ['B', '7'])
+  assert.equal(h.commits[1].kind, 'number')
   h.unmount()
 })

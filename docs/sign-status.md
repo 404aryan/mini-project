@@ -1,5 +1,50 @@
 # Sign → Text — current status
 
+## Transcript, correction and sentence output, 21 October 2026
+
+Stage 6 records each committed sign with its kind, canonical ID, readable text,
+source, automatic or confirmed commit, time span and the source's own score
+(never shown as a probability). Undo reverts the latest change of any type,
+including a whole word, one spelled letter, Clear or an editing session; the
+editor can remove individual signs and keeps the details of untouched ones.
+Screen readers hear committed changes only. "Make it a sentence" results stay
+in a separate card and cannot be spoken or copied when they change a spelled
+name, a number or a negation. See [stage 6](camera-stage-6.md).
+
+## Real data and retraining, 20 October 2026
+
+Stage 5 retrains the word forest on all 15 ISL500 signers with a fixed
+signer-disjoint train/calibration/test split. Gates and the 52 classes that
+may commit automatically are chosen on calibration signers. On the unseen test
+signers it commits 1,146 correct and 19 wrong of 2,736 clips (previous model:
+774 and 93). The YES → YOUR replay error is diagnosed and fixed. Digit 0 has
+real bundled data, offered in Numbers mode only because its photographs are the
+same captures as letter O. A second photo source shows that the static baseline
+transfers only partly to other signers. See
+[stage 5 results and limits](camera-stage-5.md) and the
+[collection manifest](sign-data-collection.md).
+
+## Signer tracking and Auto Preview, 20 October 2026
+
+Stages 3 and 4 add synchronized local hand/body/face tracking, versioned signer
+observations, CPU/hands-only fallback, and one default Auto Preview workspace.
+Auto uses explicit typed confirmation until independent mixed-stream evaluation
+is available. Spell, Numbers and isolated Words overrides remain. The shipped
+word classifier and personal sample formats remain hand-only. See
+[implementation, benchmark and validation limits](camera-stages-3-4.md).
+
+## Camera upgrade, 20 October 2026
+
+The first two stages in `promptforCamera.txt` are implemented: compact camera
+and adjacent captions, pause/mirror/fullscreen with expanded fallback, and a
+shared 200-entry vocabulary manifest with generated recognition coverage.
+HI/HEY survive mixed phrases as HELLO. See
+[implementation and verification](camera-stages-1-2.md) and the
+[coverage matrix](sign-vocabulary-coverage.md). All linguistic reviews remain
+pending. Hands-only recognition and its existing accuracy limits still apply.
+
+The notes below describe the preceding recognition work and its measurements.
+
 Checked against the working tree on 19 October 2026. All five phases have an
 implementation. Recognition now automatically loads bundled real ISL samples.
 See [dataset sources, licenses and validation](../public/models/SIGN-DATA.md).
@@ -48,17 +93,18 @@ rebuild commands are in [SIGN-DATA.md](../public/models/SIGN-DATA.md).
 
 ## What still needs work
 
-- **Real ISL data:** 3,636 bundled poses enable A–Z and 1–9 on a fresh device.
-  Source-image validation accepted 334 of 350 withheld observations correctly,
-  rejected 16, and accepted no incorrect labels. This is not webcam accuracy.
-  Digit 0 still needs a personal recording or another genuine dataset.
+- **Real ISL data:** 3,664 bundled poses enable A–Z and 0–9 on a fresh device
+  (0 in Numbers mode only). Source-image validation accepted 336 of 356
+  withheld observations correctly, rejected 20, and accepted no incorrect
+  labels. Photographs from a second source were accepted far less often
+  (61 of 609 in Spell, none wrong). This is not webcam accuracy.
 - **Device verification:** Safari/iOS, a physical Android phone, actual camera
   permission/light behavior, audible speech, and sustained frame rates still
   need hands-on checks. Lighthouse scores in the Phase 5 notes are previous lab
   measurements; they were not rerun in this follow-up.
 - **Word data:** 152 vocabulary entries now use the trained temporal model;
-  12 entries still need labelled recordings. Dictionary-only classes need more
-  examples and independent testing. See the follow-up above and source terms.
+  12 entries still need labelled recordings. 76 dictionary-only entries need
+  more signers and independent testing. See [stage 5](camera-stage-5.md).
 
 ## Bundled-data follow-up
 
