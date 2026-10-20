@@ -1,0 +1,576 @@
+YAP & RENDER - PROJECT ERROR AUDIT
+Audit date: 19 October 2026
+Project: D:\code\PROJECTS\SIH 2026\yap-render-main
+
+REPORT ONLY
+This report examines the current working tree, including changes and assets
+already present before the audit. It does not attribute these issues to any
+particular commit or person. No application fixes were made.
+
+RESULT
+73 findings: 29 high, 37 medium, 7 low.
+Additional model/data limitations and verification boundaries follow the findings.
+
+Severity:
+HIGH = core output is wrong/lost, a core flow fails, or a substantial resource,
+       privacy-control or access-control concern exists.
+MEDIUM = conditional failures, recovery/accessibility problems, or reliability gaps.
+LOW = misleading copy, inconsistent documentation, or smaller maintenance/UI defects.
+Severity is relative to this application, not a formal security score.
+
+Evidence:
+REPRODUCED = exercised using the actual code, a controlled hook/algorithm harness,
+             real stored fixtures/models, or the running local production server.
+CODE = directly identified in the implementation; the stated browser, network or
+       environment trigger was not necessarily exercised end to end.
+A controlled reproduction is not a physical-camera/browser acceptance test.
+
+SCOPE
+Reviewed the landing page, navigation, account/dashboard/About dialogs, styles,
+responsive/reduced-motion paths, text and microphone input, translation engines,
+both API routes, avatar loader/player, all exported word and alphabet animation
+tables, procedural avatar face, camera lifecycle, tracker and overlays, static
+and temporal recognition, transcript editing/copy/sentence cleanup/text-to-speech,
+both training studios, recording, local persistence, import/export, model data,
+preparation/training/evaluation scripts, documentation, dependencies and tests.
+
+Existing source files and project data were read; build, type checks, dependency
+audit, HTTP smoke checks and focused code reproductions were run. The intended
+deliverable is this text file. Findings include bugs, implementation gaps and
+explicitly identified maintenance risks; they are not all build errors.
+
+
+LANDING PAGE, ACCOUNT AND ACCESSIBILITY
+=======================================
+
+E001 | HIGH | CODE
+Sign in and sign up do not authenticate anyone
+Location: app/page.tsx:336; app/page.tsx:383
+The required password field is never read. Both forms create a name/email object in localStorage and immediately show an active account. There is no account lookup, password verification, registration service or server session. Any email and any six-character password succeed. This is a local profile demo presented as authentication; no protected backend resource was found behind it.
+
+E002 | MEDIUM | REPRODUCED
+Stored account corruption can break the landing page
+Location: app/page.tsx:222; app/page.tsx:336; app/page.tsx:397
+localStorage reads, writes and JSON.parse are unguarded. A saved value of invalid-json throws during the page effect. Valid JSON is also trusted without validating name/email; malformed objects reach name.charAt in the dashboard. Storage restrictions can additionally throw during load, sign in or sign out.
+
+E003 | MEDIUM | CODE
+Landing dialogs lack keyboard and focus management
+Location: app/page.tsx:377-425
+The account, dashboard and About overlays declare themselves modal but do not move/trap/restore focus or make the background inert. Only About installs an Escape handler. Keyboard users can continue interacting with obscured page controls, and account/dashboard cannot be dismissed with Escape.
+
+E004 | MEDIUM | CODE
+The mode dock sits above landing dialogs
+Location: app/globals.css:81; app/sign.css:9; app/page.tsx
+The auth backdrop uses z-index 30 and the mode dock uses z-index 50. The dock remains usable over account/About/dashboard overlays and can open camera mode without closing the existing modal. This creates overlapping modal state and competing focus behavior.
+
+E005 | MEDIUM | CODE
+Account and dashboard dialogs can exceed a short viewport
+Location: app/globals.css:81
+The fixed backdrop centers its content but has no scrolling, and the auth/dashboard panels have no viewport height limit or overflow-y recovery. A short viewport, zoom, or an open mobile keyboard can place form controls outside the usable area. This is a CSS-level finding; the exact affected device sizes were not visually tested.
+
+E006 | MEDIUM | CODE
+Typed translation has no clickable submit control
+Location: app/page.tsx:285; app/page.tsx:474; app/page.tsx:485
+runTranslation is connected only to Enter on the two text inputs. The visible controls offer Voice, Live, Stop and Reset, while the Play icon elsewhere is a span. There is no Translate/Play button or Enter instruction for a user who types a custom message.
+
+E007 | LOW | CODE
+The intended fonts are not loaded
+Location: app/globals.css:16-23; app/layout.tsx
+CSS names DM Sans and DM Serif Display, but the project does not load either through next/font, @font-face, an import, or a stylesheet link. Devices without these locally installed fonts render the fallback fonts, changing the intended typography and wrapping.
+
+E008 | LOW | CODE
+Explicit smooth scrolling ignores reduced-motion preference
+Location: app/page.tsx:327; app/page.tsx:400
+Quick-phrase scrolling and the dashboard jump request behavior: smooth unconditionally, despite the reduced-motion hook elsewhere. These JavaScript scrolling requests need to respect the same preference.
+
+
+MICROPHONE, LIVE SPEECH AND TRANSCRIPTION
+=========================================
+
+E009 | HIGH | REPRODUCED
+Speech result segments are joined without a word separator
+Location: app/page.tsx:258-262
+The result loop concatenates transcript strings directly. Feeding two valid result segments hello and world produces helloworld. The implementation depends on the speech provider including its own leading/trailing whitespace, which the event contract does not guarantee.
+
+E010 | HIGH | REPRODUCED
+Interim speech corrections never correct signs already queued
+Location: app/page.tsx:264-275
+The live path ignores isFinal and commits using only the current word count. In a page-hook reproduction, I eat followed by I ate rice queued I eat and then rice. The corrected ate was never delivered. Replacements with the same word count are skipped entirely, and shortening a hypothesis can suppress subsequent words.
+
+E011 | HIGH | REPRODUCED
+Stop voice input restarts the microphone in Live mode
+Location: app/page.tsx:251-255; app/page.tsx:298-303
+The microphone button calls recognition.stop() without clearing liveModeRef. onend then schedules another start. A simulated live session recorded a second start after clicking Stop voice input, so this control does not actually end live capture.
+
+E012 | HIGH | REPRODUCED
+A scheduled speech restart survives Stop, camera entry and unmount
+Location: app/page.tsx:118-125; app/page.tsx:251-255; app/page.tsx:279-282; app/page.tsx:319-325
+onend checks liveModeRef before scheduling its 220 ms timer, but the timer never checks it again and its ID is not retained/cancelled. Stopping during that gap still restarts recognition. Entering camera mode has the same race. Cleanup aborts recognition without first clearing the live flag or removing callbacks, so onend/timers can also restart after unmount.
+
+E013 | HIGH | CODE
+Speech errors are discarded and live retries can loop
+Location: app/page.tsx:257
+onerror only changes isListening to false. It does not inspect permission, network, audio-capture or service errors, explain the failure, or disable live retries. A terminal error followed by onend can repeatedly restart a session that cannot work.
+
+E014 | MEDIUM | CODE
+User-triggered recognition.start calls are unguarded
+Location: app/page.tsx:298-315
+Both voice and live buttons call start() directly. isListening becomes true only in onstart, leaving a window for a second click/start while a start is already pending. A browser InvalidStateError is uncaught, and there is no starting state to suppress duplicate starts.
+
+E015 | MEDIUM | CODE
+Live transcript history is replaced after a service restart
+Location: app/page.tsx:246-262
+Every onstart resets the committed count, and onresult replaces the displayed text with the new session event.results. When continuous recognition ends and automatically restarts, earlier recognized text is lost from the visible transcript instead of being retained as session history.
+
+E016 | MEDIUM | CODE
+Live translation has no queue size or latency limit
+Location: app/page.tsx:151-160; components/avatar/AvatarPlayer.tsx:425
+Every newly counted speech fragment is appended to animation instructions. There is no maximum backlog, stale-fragment policy or catch-up mechanism. When speech arrives faster than signs can play, memory and playback delay grow for the duration of the session. Chunking also separates phrases such as THANK YOU across calls, preventing the whole-phrase mapping from seeing them.
+
+E017 | LOW | CODE
+The engine indicator reports misleading live/quick-phrase status
+Location: app/page.tsx:151-158; app/page.tsx:291-295; app/page.tsx:468
+Live intentionally uses the offline engine even with AI selected, then the UI labels this AI unavailable although no AI failure occurred. Quick phrases also use the offline engine but do not update translationMode, so they can continue displaying online. The status does not identify the engine actually used.
+
+
+TEXT NORMALIZATION AND TRANSLATION CORRECTNESS
+==============================================
+
+E018 | HIGH | REPRODUCED
+Old AI replies override Stop and newer local actions
+Location: app/page.tsx:179-194; app/page.tsx:291-295; app/page.tsx:319-325; app/page.tsx:478
+Only a newer dispatchTranslation or choosing Offline cancels an outstanding request. Stop, Reset, quick phrases and camera entry do not. Resolving a deferred AI response after Stop increased requestId and replaced avatarPhrase, restarting playback. The same stale reply can overwrite a quick phrase selected after the request.
+
+E019 | HIGH | REPRODUCED
+Numbers are silently deleted from avatar translation
+Location: lib/islVocabulary.ts:52; lib/islTranslator.ts:30
+The token sanitizer keeps only A-Z and underscore. Reproductions: 123 yields no playable tokens; call 112 loses 112; I have 2 books loses the quantity. The avatar has no numerical token path, and users are not told that numeric information was discarded.
+
+E020 | HIGH | REPRODUCED
+Advertised Hindi input is not supported by the offline/live path
+Location: README.md:5; app/page.tsx:245; lib/islVocabulary.ts:52; components/avatar/textToGloss.js
+README advertises spoken or typed English/Hindi. Recognition is fixed to en-IN with no input-language selector. The live path always uses the English offline engine; Devanagari-only text was reduced to an empty token list in the audit. An online AI call might interpret Hindi, but offline and live Hindi support is missing.
+
+E021 | HIGH | REPRODUCED
+Suffix stripping corrupts names and supported words
+Location: components/avatar/textToGloss.js:397-433
+Rule-based lemmatization strips endings without checking whether the word is a proper name or an existing vocabulary entry. James became JAM and was fingerspelled J A M. Clothes became CLOTH instead of the supported CLOTHES token. Unknown words can therefore be spelled incorrectly, not merely fall back to spelling.
+
+E022 | MEDIUM | REPRODUCED
+Repeated explicit letters are collapsed
+Location: components/avatar/textToGloss.js:607-612
+normalizeGlossTokens removes every adjacent repeated token. An explicit B B input becomes a single B, so deliberate double-letter spelling or repeated signs cannot be represented through this path.
+
+E023 | HIGH | REPRODUCED
+Fingerspelled I is interpreted as the pronoun sign
+Location: lib/islVocabulary.ts; components/avatar/AvatarPlayer.tsx:456-465; components/avatar/animations/words.js
+The same string I means both the alphabet letter and the word I. enqueuePhrase prioritizes wordAnimations before alphabetAnimations. Thus A M I T, including the API prompt example for Amit, performs the pronoun gesture in the middle of a name instead of fingerspelling the letter I.
+
+E024 | MEDIUM | REPRODUCED
+The coverage shortcut bypasses the documented grammar pass
+Location: components/avatar/textToGloss.js:92-119; components/avatar/textToGloss.js:464-480
+When all words are covered, convertSentenceToGloss returns the coverage result before its reordering logic. I eat water returns I EAT WATER, bypassing the code and API prompt requirement to put the object before the verb. Sentences take materially different grammar paths depending on vocabulary coverage.
+
+E025 | HIGH | REPRODUCED
+Pronoun cleanup deletes participants in a sentence
+Location: components/avatar/textToGloss.js:374-378; components/avatar/textToGloss.js:593-612
+The coverage skip set permits uncovered we/us/our and other pronouns to disappear. We need help produced NEED HELP, losing the subject. HER maps to an empty token even when it is an object: I help her loses her. The code does not distinguish possessive her from the person being helped.
+
+E026 | MEDIUM | REPRODUCED
+Offline negation does not map to the existing NO gesture
+Location: components/avatar/textToGloss.js; lib/islVocabulary.ts
+I do not know produces I KNOW N O T, and cannot is fingerspelled instead of using the supported NO mapping specified by the online prompt. Meaningful negation is delivered inconsistently between engines and can be fragmented further in live chunks.
+
+E027 | MEDIUM | REPRODUCED
+The sanitizer accepts underscore as a playable result
+Location: lib/islVocabulary.ts:52-55; app/api/translate-isl/route.ts:86
+sanitizeTokens(["_"]) returns ["_"] because any one-character token is accepted after filtering. isPlayableToken rejects underscore, and there is no underscore animation. The API can therefore accept a nonempty token array that the player cannot play, contradicting the sanitizer contract.
+
+
+AVATAR LOADING, PLAYBACK AND ANIMATION DATA
+===========================================
+
+E028 | HIGH | REPRODUCED
+CONFUSED can permanently block the animation queue
+Location: components/avatar/animations/Words/States.js:209-256; components/avatar/AvatarPlayer.tsx:216-246
+One CONFUSED frame contains opposing targets for the same middle/ring/pinky finger Z rotations: zero with a negative direction and PI/2 with a positive direction. Simulating the actual queue stepping left that frame unfinished after 20,000 ticks. Later signs remain behind it until the queue is stopped/reset/replaced.
+
+E029 | HIGH | REPRODUCED
+Wrong direction flags silently skip authored movements
+Location: components/avatar/AvatarPlayer.tsx:234-242; components/avatar/animations/Words; components/avatar/animations/Alphabets/T.js:13
+The player removes an instruction whenever its signed direction does not point from the current value toward the target. The exact stepping audit found skipped targets in TIME, TAKE, SHOW, WHICH, ROAD, COFFEE, RICE, DOOR, FAMILY, WALK, STAND, MAKE, DO, TRY, NEED_HELP, READY and IMPORTANT, plus alphabet T. For example TIME starts right-arm Z at PI/3, targets PI/3.5, but specifies +; T targets positive thumb joint Y from zero but specifies -. Aliases using these functions inherit the problem.
+
+E030 | HIGH | REPRODUCED
+Several signs leave joints displaced for the following sign
+Location: components/avatar/animations/Words; components/avatar/AvatarPlayer.tsx:425-432
+The authored reset sequence does not restore the default pose for GOOD, THANK_YOU, WHO, TEA, BREAD, RICE, ROOM, FAMILY, NEIGHBOR, WALK and MAKE in the simulation. Examples: ROOM leaves both hand X rotations near -0.785; WALK leaves left-hand X near -0.524; MAKE leaves right-hand X near -0.393. The player resets before a replacement phrase, but not between words or appended live fragments, so residual poses affect later signs. Some residuals arise from the direction errors above; others are missing/inconsistent resets.
+
+E031 | HIGH | REPRODUCED
+The displayed A cannot match the bundled A hand-count requirement
+Location: components/avatar/animations/Alphabets/A.js; public/models/isl-samples.json; lib/sign/knn-classifier.ts:60
+The A animation uses one active hand, while all 108 bundled A reference samples have two hands and the classifier filters by exact hand count. A user copying that one-hand avatar example cannot obtain A from the bundled classifier. This is a concrete inconsistency between the two directions of the product, independent of broader linguistic validation.
+
+E032 | HIGH | CODE
+Live phrases are overwritten while the avatar loads
+Location: components/avatar/AvatarPlayer.tsx:47; components/avatar/AvatarPlayer.tsx:64-69; components/avatar/AvatarPlayer.tsx:181
+pendingPhraseRef holds one object. Multiple live fragments arriving before readyRef becomes true overwrite one another. Only the last fragment is replayed when the GLB loads, even though appendToQueue requested ordered playback. A model switch also clears the queue and retains only the latest phrase.
+
+E033 | MEDIUM | CODE
+Reset during avatar loading does not cancel pending playback
+Location: components/avatar/AvatarPlayer.tsx:85-90
+The Reset effect returns immediately when readyRef is false, before clearing pendingPhraseRef. A phrase queued during loading still starts after the user presses Reset. Stop has a separate pending-clear path, so the two controls behave inconsistently.
+
+E034 | HIGH | CODE
+Avatar load failure is reported as ready and has no recovery
+Location: components/avatar/AvatarPlayer.tsx:147-190
+The GLTFLoader error callback only calls onStateChange(ready). It never sets readyRef true, shows an error or offers retry. Subsequent requests remain pending indefinitely while the page claims the avatar is ready.
+
+E035 | HIGH | CODE
+WebGL initialization failure is unhandled
+Location: components/avatar/AvatarPlayer.tsx:116; app/page.tsx; app
+new THREE.WebGLRenderer runs without try/catch or a local error boundary. A device that cannot create the required context throws from the effect and loses the avatar/page flow instead of seeing a recoverable unavailable state. No application error.tsx boundary was found. This browser failure path was inspected, not executed on hardware.
+
+E036 | MEDIUM | CODE
+Animation speed depends on display/render frame rate
+Location: components/avatar/AvatarPlayer.tsx:210-242
+Movement advances by 0.05 * speed on each render without multiplying by elapsed time. Higher-refresh displays move joints faster; the 12 FPS low-power path moves them much slower. The timed 170 ms holds do not compensate for the frame-dependent movement duration.
+
+E037 | MEDIUM | CODE
+Avatar switches do not dispose model GPU resources
+Location: components/avatar/AvatarPlayer.tsx:147-169; components/avatar/AvatarPlayer.tsx:261-268; components/avatar/humanLayer.ts
+Cleanup disposes the renderer but does not traverse and dispose model geometry, materials and textures, or the procedural face resources. Late GLB success after disposal simply returns without disposing the loaded scene. Repeated avatar changes can accumulate unreleased resources; the size of an actual device leak was not measured.
+
+E038 | MEDIUM | CODE
+Unplayable input can leave the status stuck on signing
+Location: components/avatar/AvatarPlayer.tsx:72-74; components/avatar/AvatarPlayer.tsx:192-255; app/page.tsx:169-170
+The page falls back to raw input when translation yields no gloss. enqueuePhrase can add zero instructions for digits-only, unsupported-script or underscore input, but the player still reports signing. Its ready transition requires wasSigning to have become true while processing a nonempty queue, so an idle empty queue never clears that status.
+
+
+CAMERA MODE, RECOGNITION AND LIVE SIGN TRANSCRIPT
+=================================================
+
+E039 | HIGH | CODE
+The focus trap breaks forward keyboard navigation at disclosures
+Location: lib/sign/use-sign-mode.ts:180-185; components/sign/sign-stage.tsx:173-177
+The focusable selector excludes native summary elements, although the stage now contains details/summary controls. Once normal Tab navigation focuses a summary, controls.indexOf(activeElement) is -1, and the next Tab is intercepted and sent to the first control. Controls after the disclosure cannot be reached through the normal forward Tab sequence.
+
+E040 | MEDIUM | CODE
+Recognizer mode does not follow Back/Forward navigation
+Location: components/sign/sign-stage.tsx:53-59; lib/sign/use-sign-mode.ts:141-153
+The stage reads recognizer=words only on its first mount. Mode changes replace the URL, while the parent only synchronizes mode=sign on popstate. Because the stage stays mounted, returning to an older history entry with a different recognizer query can show the wrong active recognizer.
+
+E041 | MEDIUM | CODE
+Late video attachment suppresses playback errors
+Location: lib/sign/use-sign-mode.ts:77-82; lib/sign/use-sign-mode.ts:133-138
+Camera permission can resolve before the lazy stage attaches its video. requestCamera then marks the stream live without playing a video. attachVideo later calls play() but swallows rejection, leaving status live and the stream running even if playback never starts. The immediate-attachment path handles this failure differently.
+
+E042 | HIGH | REPRODUCED
+Repeated recognized words can reuse transcript IDs
+Location: lib/sign/use-sign-recognition.ts:125-131; lib/sign/temporal-recognizer.ts:84-104; lib/sign/transcript-tokens.ts; components/sign/transcript.tsx:106
+The automatic token ID increments when the candidate label changes, not for every completed word. After a committed YES, no-hand frames retain the committed label; the next thumbs-up can also immediately return YES. Two separate completed YES gestures then reuse ID 1 and expand to duplicate word-1-* keys/layout IDs. This was reproduced through the recognizer and token-allocation logic.
+
+E043 | HIGH | REPRODUCED
+A brief thumbs-up can commit after a long absence or stall
+Location: lib/sign/temporal-recognizer.ts:84-106
+thumbsUpSince is not cleared in the no-hand branch. A reproduced sequence of one thumbs-up at 0 ms, no hands at 300 ms, and a thumbs-up at 3000 ms immediately committed YES on return. The first thumbs-up bypasses the forest frame buffer, so the frames/committed guard prevents the reset. A stalled two-frame sequence also satisfies the elapsed-time gate without a continuous 500 ms hold.
+
+E044 | HIGH | REPRODUCED
+Personal word templates do not replace pretrained matching
+Location: lib/sign/temporal-recognizer.ts:17; lib/sign/temporal-recognizer.ts:42; lib/sign/temporal-recognizer.ts:59-76; lib/sign/temporal-recognizer.ts:113
+The personal DTW recognizer runs beside the forest, but the forest is never masked for personally trained labels. A mock forest committed HELLO at about 800 ms despite three valid personal HELLO templates, before the 30-frame personal matcher could complete. This contradicts the documented personal-override behavior and can preserve a pretrained false positive the user tried to correct.
+
+E045 | HIGH | REPRODUCED
+Personal word matching can block the camera/UI thread
+Location: lib/sign/temporal-recognizer.ts:17; lib/sign/temporal-recognizer.ts:113; lib/sign/dtw-classifier.ts
+The temporal recognizer constructs DtwSignRecognizer without its worker callback, so personal.predict executes synchronous matching on the main thread. A legal 820-reference library took about 306, 347 and 371 ms for individual queries in this environment, while the matcher attempts queries at roughly 250 ms intervals. The forest worker does not offload this personal path.
+
+E046 | HIGH | REPRODUCED
+Static recognition discards relative position of the two hands
+Location: lib/sign/features.ts:17-28
+Each hand is independently wrist-centered and scaled, and the vector contains no distance/contact/relative-position features between them. Moving one hand by +0.3 X and -0.1 Y while keeping ordering stable produced identical 126-feature vectors. Two-hand signs distinguished by relative placement cannot be distinguished from these features alone.
+
+E047 | MEDIUM | REPRODUCED
+Static minimum-sample gating combines incompatible hand counts
+Location: lib/sign/knn-classifier.ts:43-46; lib/sign/sample-store.ts:114-118
+The minimum three samples and personal override count are grouped only by label, but prediction filters by hand count. Two two-hand A samples plus one one-hand A qualify the label and replace bundled A; the sole one-hand reference can then score confidence 1.0. A hand-count-specific label can be considered trained after only one usable example.
+
+E048 | HIGH | CODE
+Focusing an offline tab can discard loaded static recognition
+Location: lib/sign/sample-store.ts:88-107; lib/sign/use-sign-recognition.ts:60-68; components/sign/sign-stage.tsx
+Every focus refresh fetches bundled samples again with cache: no-store. If that fetch fails offline, readRecognitionDataset substitutes an empty bundled dataset, and the hook replaces the working classifier with local samples only. With no local samples, recognition stops even though the baseline was loaded earlier, conflicting with the loaded-model offline message.
+
+E049 | MEDIUM | CODE
+Model/sample downloads have no bounded loading deadline
+Location: lib/sign/sample-store.ts:96; lib/sign/word-recognizer.ts:9-16; lib/sign/use-sign-recognition.ts
+The sample fetch and both temporal-model fetches have no AbortSignal or timeout. A response that never completes can leave dataset.loading true indefinitely. The 15-second worker startup timeout starts only after metadata and weights have downloaded, so it does not cover this failure.
+
+E050 | MEDIUM | CODE
+Saved personal words cannot work when the pretrained model fails to load
+Location: lib/sign/use-sign-recognition.ts:52-57; lib/sign/word-recognizer.ts:9; lib/sign/word-recognizer.ts:52
+Live Words mode always awaits createTrainedWordRecognizer, even when valid personal recordings are available locally. A failed forest download disables the entire recognizer. The separate worker-based createWordRecognizer exists but is not used as a fallback by this hook.
+
+E051 | MEDIUM | CODE
+A full local static library removes unrelated bundled coverage
+Location: lib/sign/sample-store.ts:112-127
+The 5,000-sample storage/import cap is also applied to the merged recognition dataset. A valid device library containing 5,000 samples for one label leaves zero slots for all other bundled labels. Near the cap, round-robin insertion can leave fewer than three references for some labels, silently disabling them. Personal data for one sign should not accidentally erase unrelated built-in support.
+
+
+RECORDING, TRAINING STUDIO, STORAGE AND EXPORT
+==============================================
+
+E052 | HIGH | REPRODUCED
+A successfully captured motion can be impossible to save or export
+Location: lib/sign/word-recorder.ts:29-38; lib/sign/word-data.ts:44; components/sign/word-training-studio.tsx
+WordRecorder accepts inter-frame gaps up to 250 ms and completes at 30 frames. At 5 FPS it produces a valid-motion sample lasting 5800 ms, but parseWordDataset rejects any duration over 5000 ms. Saving fails, and Export unsaved motion calls the same validator and fails too. The UI retains an unsaveable pending recording and prevents further recording until it is discarded.
+
+E053 | HIGH | REPRODUCED
+A legal word-library export can exceed its own import limit
+Location: lib/sign/word-data.ts:10; lib/sign/word-store.ts:73; components/sign/word-training-studio.tsx:175
+The parser allows 164 labels times five recordings, and export serializes full-precision 30x132 arrays with indentation. A validated 820-recording test dataset serialized to 99,548,114 bytes, above MAX_WORD_FILE_BYTES = 67,108,864. The application can export a backup that both import UIs reject as larger than 64 MB.
+
+E054 | MEDIUM | CODE
+Unsaved backup export depends on merging with the complete stored library
+Location: components/sign/word-training-studio.tsx:108-110; lib/sign/word-data.ts:59
+Export unsaved motion first merges pending samples with every stored sample under normal per-label/count/ID validation. If a save failed because another tab filled the label limit or introduced a conflicting ID, this backup path fails for the same reason. It cannot export just the pending recording to recover it.
+
+E055 | MEDIUM | CODE
+The word review preview hides the recorded movement trajectory
+Location: components/sign/word-training-studio.tsx:32; components/sign/sample-preview.tsx
+MotionPreview passes only the first 126 hand-shape features to SamplePreview, which independently centers/scales the hands. The six wrist-motion features are omitted. The UI discloses this limitation, but users cannot inspect translation through space or relative wrist movement when deciding whether to keep/delete a motion.
+
+E056 | MEDIUM | CODE
+Navigation discards unsaved recordings without a warning
+Location: components/sign/training-studio.tsx; components/sign/word-training-studio.tsx
+Recordings retained after a failed save exist only in component state. The navigation links stop the camera and leave immediately, and no pending-data route/unload guard is installed. A storage failure followed by navigation or reload loses the pending recording even though the studio offered Retry save and Export.
+
+E057 | MEDIUM | REPRODUCED
+Dataset import/export strips source and license metadata
+Location: lib/sign/knn-classifier.ts:7-24; lib/sign/word-data.ts:35-55; lib/sign/sample-store.ts; lib/sign/word-store.ts
+Both parsers reconstruct only their narrow schema and drop additional source/license/attribution metadata. Re-exporting imported annotated data preserves samples but loses that provenance. Shared backups cannot retain the original metadata through this round trip. This finding does not determine any legal violation.
+
+E058 | LOW | CODE
+Word-training copy contradicts the shipped pretrained model
+Location: components/sign/word-training-studio.tsx:146-150; public/models/isl-temporal-model.json
+The studio says No pretrained words and that a word becomes available only after three recordings. Live Words mode now loads a pretrained forest covering 152 vocabulary entries. The page does not distinguish personal training requirements from already available baseline words.
+
+
+SERVER API BEHAVIOR AND RESOURCE CONTROLS
+=========================================
+
+E059 | HIGH | CODE
+Public AI endpoints have no application-level abuse or budget controls
+Location: app/api/translate-isl/route.ts; app/api/sign/sentence/route.ts
+Both POST endpoints can invoke the configured paid Gemini service without a rate limit, per-client quota, concurrency limit or other application-level abuse control. Repeated requests can consume the server key quota and make translation unavailable. No infrastructure-side protections could be verified from this repository; no paid abuse/load test was performed.
+
+E060 | MEDIUM | CODE
+Request size checks happen after the full body is buffered
+Location: app/api/translate-isl/route.ts:48-59; app/api/sign/sentence/route.ts:7-8
+translate-isl calls request.json before clipping the text. sentence calls request.text before checking its 20,000-character limit. These checks do not limit the amount of body data read/parsed in memory. Actual exposure depends on hosting request limits, which are not configured in the repository.
+
+E061 | MEDIUM | CODE
+Online translation silently truncates input at 600 characters
+Location: app/api/translate-isl/route.ts:57-59; app/page.tsx:474; app/page.tsx:485
+The frontend input has no matching limit or truncation notice, while the API drops everything after character 600 and returns a normal successful translation. A long message can visibly remain complete in the input while the avatar signs only its prefix.
+
+E062 | MEDIUM | CODE
+Client cancellation does not cancel server AI work
+Location: lib/islTranslator.ts:16; lib/islTranslator.ts:73; app/api/translate-isl/route.ts:63-75; app/api/sign/sentence/route.ts
+The translation client falls back after three seconds, but translate-isl neither forwards request.signal nor sets a provider HTTP timeout. The provider operation can keep running after the client abandons it. sentence has a 10-second provider timeout, but also does not forward cancellation. Repeated abandoned requests can keep consuming resources.
+
+E063 | MEDIUM | CODE
+The AI prompt teaches temporal information loss
+Location: app/api/translate-isl/route.ts:13-18
+The prompt requires temporal words first, but its example for Where did you go yesterday removes yesterday entirely because it is unsupported, despite the later unknown-word fingerspelling rule. These instructions conflict and explicitly demonstrate dropping the time qualifier. No live model call was made to quantify how often it follows this example.
+
+E064 | LOW | CODE
+Raw provider errors and model output are exposed to logs/responses
+Location: app/api/translate-isl/route.ts:82; app/api/translate-isl/route.ts:93-98
+Non-rate-limit provider error messages are returned directly to clients. Malformed model output is logged verbatim for its first 200 characters, and provider messages are also logged. This can disclose service details or user-derived text through error/log paths. No secret leakage was observed; the issue is lack of controlled error redaction.
+
+
+DATA PIPELINE, RELEASE CHECKS AND MAINTENANCE
+=============================================
+
+E065 | MEDIUM | CODE
+Training requirements omit pandas used by data preparation
+Location: scripts/sign-training-requirements.txt; scripts/train-word-model.py:303
+The INCLUDE loading path calls pyarrow Table.to_pandas and then pandas DataFrame APIs. pandas is not declared in the training requirements. A clean installation that only satisfies the listed packages does not explicitly provide this runtime dependency; an existing developer environment can conceal the omission. A full clean Python retraining run was not performed.
+
+E066 | MEDIUM | CODE
+Validation feature cache is reused by row count alone
+Location: scripts/evaluate-word-model.py:15-20
+The cached temporal-validation-features.npy is reused whenever its row count equals the selected record count. It is not keyed by record identities/order, feature code version or source checksum. Replacing/reordering source data without changing the count can evaluate stale vectors against new expected labels and produce misleading metrics.
+
+E067 | MEDIUM | REPRODUCED
+Model metadata reports different metrics from the deployed binary
+Location: public/models/isl-temporal-model.json; scripts/train-word-model.py; scripts/evaluate-word-model.py
+The model metadata carries pre-compression validation numbers: 566/763 top-choice correct and 179 correct accepted, 12 wrong accepted, 572 rejected. The exact deployed float32 forest produced 563/763 top-choice correct and 176 correct accepted, 12 wrong accepted, 575 rejected. docs/sign-status.md correctly uses the latter, leaving the manifest and docs inconsistent.
+
+E068 | MEDIUM | CODE
+Dataset rebuild scripts do not update published provenance files
+Location: scripts/prepare-sign-data.py:93-95; scripts/prepare-word-data.py:132-134; public/models
+The preparation scripts replace the public sample datasets but write their new provenance only inside .sign-data-cache. The public static-provenance.json and word-provenance.json are not updated by those same rebuild operations. Rebuilding different data can leave the published provenance describing the old dataset.
+
+E069 | MEDIUM | CODE
+The held-out evaluator silently succeeds without held-out files
+Location: scripts/evaluate-sign-data.cjs:13-17; .gitignore
+The evaluator continues when each .sign-data-cache held-out file is missing, then prints an empty report and exits successfully. A fresh checkout can therefore appear to have passed evaluation without running a single case. Temporal replay/evaluation also depend on ignored cached input files and cannot run directly from the committed fixtures alone.
+
+E070 | LOW | REPRODUCED
+An asset documented as removed is still publicly served
+Location: public/models/ATTRIBUTION.md; public/models/brunette.glb
+The attribution document says brunette.glb was removed on 2026-08-28. It remains in public and the production server returned HTTP 200 with 4,721,528 bytes. The current avatar does not use it. This leaves an obsolete publicly shipped asset and inaccurate attribution/removal documentation; the file is described there as CC BY-NC 4.0.
+
+E071 | MEDIUM | CODE
+Production builds deliberately skip TypeScript validation
+Location: next.config.mjs:4; package.json
+ignoreBuildErrors is true, and package.json has no typecheck script or combined build/check gate. The audit ran TypeScript separately and it passed, but npm run build alone can report success for a future type-invalid change. No CI configuration enforcing the separate check was found.
+
+E072 | MEDIUM | CODE
+Current automated tests do not cover major user flows
+Location: test/sign-*.test.cjs; package.json
+The 76 passing tests focus on sign data, recognition, recording and mocked camera/hooks. There is no automated landing-account, Web Speech lifecycle, complete avatar-queue, or full frontend-to-API regression suite. The reproduced speech and animation failures above pass the existing suite. This is a concrete coverage gap, not a claim that the existing tests are worthless.
+
+E073 | LOW | CODE
+Python training environments are not reproducibly locked
+Location: scripts/sign-training-requirements.txt; scripts/prepare-sign-data.py; scripts/prepare-word-data.py; scripts/train-word-model.py
+Only MediaPipe is pinned in the training requirements; NumPy, scikit-learn, h5py, OpenCV and PyArrow are not locked. Several source downloads also reference mutable upstream locations. Some source checksums are verified, but the complete dependency/source environment is not frozen, so reproducing a trained artifact can depend on installation date.
+
+
+KNOWN MODEL AND DATA LIMITATIONS
+===============================
+
+L01. Missing baseline recognition coverage
+Letters/numbers ship with A-Z and 1-9. Digit 0 needs personal recordings.
+The temporal model exposes 152 of 164 avatar vocabulary entries, with 151
+distinct trained word classes plus the vocabulary alias mapping. Missing
+pretrained entries are NEED, TOILET, TELL, PROJECT, HOW, HOW_MUCH, COME_IN,
+GO_OUT, BRING, NEED_HELP, WAIT_MINUTE and BECAUSE. These are known dataset gaps,
+not missing module imports. Personal training does not remove the failures
+described in the personal-matching findings above.
+Locations: public/models/isl-samples.json, public/models/isl-temporal-model.json,
+public/models/SIGN-DATA.md, docs/sign-status.md.
+
+L02. Current word recognition accepts incorrect labels and rejects many clips
+The deployed forest on 763 held-out source recordings produced:
+  176 correct automatic accepts
+   12 incorrect automatic accepts
+  575 rejections
+Top-choice classification before acceptance gating was 563/763 (73.8%).
+Only 176/763 (23.1%) observations became correct automatic output at those gates;
+12 of 188 accepted outputs (6.4%) were wrong. These are source-set results,
+not a prediction of accuracy for a new webcam user.
+
+A 30-recording replay through the live temporal-recognizer/transcript path gave:
+  12 correct transcripts
+   1 wrong transcript
+  17 rejections
+This was actual source-track replay at the script's 15 FPS input schedule, with
+synchronous forest callbacks; it did not include browser worker scheduling,
+physical capture, or the live hook's token-ID allocation bug.
+
+The older template-word evaluator gave four correct accepts, zero wrong accepts
+and eight rejections across 12 held-out clips. That is a separate legacy matcher,
+not the currently selected pretrained live forest.
+
+L03. Many trained words lack independent validation
+The current source split has 76 trained word classes with no independent held-out
+recording; 70 classes have only one training recording. Augmentation does not
+create independent signers. Overall held-out accuracy therefore does not validate
+the full vocabulary or signer/environment generalization.
+Locations: scripts/train-word-model.py, model metadata/provenance and cached
+source-recording manifests.
+
+L04. Source usage restrictions remain relevant to shipping the model
+The project's data documentation records academic/research restrictions for
+sources used by the word model, and the attribution file identifies a
+non-commercial license for the still-shipped brunette asset. Do not treat a
+successful build as evidence that these artifacts are unrestricted for every
+deployment. This audit records the repository's own terms; it is not a legal
+determination or a review of external licensing changes.
+Locations: public/models/SIGN-DATA.md, public/models/ATTRIBUTION.md,
+public/models/temporal-provenance.json.
+
+L05. Animation validity is not established by animation completeness
+The audit checked every exported animation for queue behavior and references
+against the actual Y Bot rig; it did not certify each gesture as correct ISL.
+The letter A/recognizer mismatch and the queue/data defects above are verified.
+Full vocabulary correctness, regional variation, intelligibility and grammar
+still need review by fluent ISL users. Procedural motion and a token named after
+an ISL word are not sufficient validation.
+
+
+CHECKS THAT PASSED
+=================
+
+1. TypeScript:
+   node node_modules/typescript/bin/tsc --noEmit --incremental false
+   Completed successfully.
+
+2. Existing automated suite:
+   npm run test:sign
+   76 tests passed; zero failed.
+
+3. Production build:
+   npm run build
+   Completed successfully. The build explicitly skipped type validation due
+   to next.config.mjs; the independent TypeScript check above covers this run.
+
+4. Dependency audit:
+   npm audit --omit=dev --json and npm audit --json
+   Both reported zero known vulnerabilities at audit time.
+   This does not prove the application itself has no security defects.
+
+5. Local production HTTP checks:
+   /, /sign/train and /sign/train/words returned HTTP 200.
+   The documented camera surface is /?mode=sign; a bare /sign returned 404
+   and was not counted as a bug because no route/link promises that page.
+   Core sample/model/weight/avatar/gesture assets returned HTTP 200.
+   Malformed JSON and invalid input shapes exercised against both APIs returned
+   HTTP 400. No valid paid Gemini generation request was submitted.
+
+6. Static source-data evaluation:
+   350 held-out observations; 334 correct accepts, zero wrong accepts,
+   16 rejections. This is not physical-webcam accuracy.
+
+7. Animation/rig inventory:
+   Exported canonical vocabulary animation functions and alphabet functions
+   resolved against actual Y Bot bone names without missing-reference errors.
+   Playback direction, reset and deadlock problems are listed separately.
+
+8. Existing camera/session safeguards inspected or covered by tests:
+   Camera consent handling, stopping tracks on exit/backgrounding, late-permission
+   resolution cancellation, local-only landmark/model processing, storage
+   transaction completion, stale sentence response protection, and text-to-speech
+   cancellation on page hiding have implemented safeguards. They were not
+   reported as missing merely because another feature has similar lifecycle bugs.
+
+
+VERIFICATION LIMITS AND HOW TO READ THIS REPORT
+==============================================
+
+No usable browser surface was exposed by the available browser tool. Therefore
+there was no interactive browser layout pass, accessibility-tree/screen-reader
+test, actual microphone transcription, audible text-to-speech check, physical
+camera test, mobile Safari/Android test, GPU-memory measurement, or sustained
+on-device frame-rate test. HTTP page responses do not establish those outcomes.
+
+Speech races and normalization bugs were exercised with actual page/code logic
+under controlled mocks. Camera permission/video failure branches marked CODE
+are source findings unless explicitly described as reproduced. Viewport and
+focus findings also need a real browser regression pass after any repair.
+
+No cloud AI quality/latency, provider availability, deployment configuration,
+production traffic, hosting rate limits, production secrets, or clean Python
+retraining environment was tested. Secret values were not needed for this audit.
+
+Existing evaluation scripts were executed with output writes suppressed where
+necessary to keep cached reports and model files unchanged. Focused reproduction
+snippets ran in memory; they were not added as application code or test files.
+The production build's generated next-env.d.ts change was reverted to its
+pre-audit content. Existing user modifications were preserved.
+
+This is a broad audit of the available project, not a guarantee that every
+possible bug has been discovered. All findings above have a stated evidence
+basis; untested areas are identified instead of being claimed error-free.
+

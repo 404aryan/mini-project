@@ -1,0 +1,181 @@
+- generic [active] [ref=f4e1]:
+  - main [ref=f4e2]:
+    - generic [ref=f4e3]:
+      - link "yap & render" [ref=f4e4] [cursor=pointer]:
+        - /url: /
+      - generic [ref=f4e11]: Training Studio · Beta
+      - link "Live recognition" [ref=f4e12] [cursor=pointer]:
+        - /url: /?mode=sign
+    - generic [ref=f4e15]:
+      - paragraph [ref=f4e16]: A vocabulary shaped by you
+      - heading [level=1] [ref=f4e18]:
+        - text: Your hands.
+        - emphasis [ref=f4e19]: Your vocabulary.
+      - paragraph [ref=f4e20]: Choose an ISL sign you know. Hold it, record it, make it yours.Your camera stays private. Your samples stay on this device.
+    - generic "Training library summary" [ref=f4e21]:
+      - generic [ref=f4e22]:
+        - strong [ref=f4e23]: "0"
+        - text: saved poses
+      - generic [ref=f4e24]:
+        - strong [ref=f4e25]: 0 / 36
+        - text: labels ready
+      - generic [ref=f4e26]: Landmarks only · no video stored
+    - generic [ref=f4e30]:
+      - region [ref=f4e31]:
+        - paragraph [ref=f4e32]: 01 / Pick a sign
+        - heading "Letters & numbers" [level=2] [ref=f4e33]
+        - paragraph [ref=f4e34]: Record only the ISL poses you know. We don’t supply invented sign examples.
+        - group "Sign labels" [ref=f4e35]:
+          - button "Train A, 0 samples" [pressed] [ref=f4e36] [cursor=pointer]:
+            - generic [ref=f4e37]: A
+            - generic [ref=f4e38]: "0"
+          - button "Train B, 0 samples" [ref=f4e39] [cursor=pointer]:
+            - generic [ref=f4e40]: B
+            - generic [ref=f4e41]: "0"
+          - button "Train C, 0 samples" [ref=f4e42] [cursor=pointer]:
+            - generic [ref=f4e43]: C
+            - generic [ref=f4e44]: "0"
+          - button "Train D, 0 samples" [ref=f4e45] [cursor=pointer]:
+            - generic [ref=f4e46]: D
+            - generic [ref=f4e47]: "0"
+          - button "Train E, 0 samples" [ref=f4e48] [cursor=pointer]:
+            - generic [ref=f4e49]: E
+            - generic [ref=f4e50]: "0"
+          - button "Train F, 0 samples" [ref=f4e51] [cursor=pointer]:
+            - generic [ref=f4e52]: F
+            - generic [ref=f4e53]: "0"
+          - button "Train G, 0 samples" [ref=f4e54] [cursor=pointer]:
+            - generic [ref=f4e55]: G
+            - generic [ref=f4e56]: "0"
+          - button "Train H, 0 samples" [ref=f4e57] [cursor=pointer]:
+            - generic [ref=f4e58]: H
+            - generic [ref=f4e59]: "0"
+          - button "Train I, 0 samples" [ref=f4e60] [cursor=pointer]:
+            - generic [ref=f4e61]: I
+            - generic [ref=f4e62]: "0"
+          - button "Train J, 0 samples" [ref=f4e63] [cursor=pointer]:
+            - generic [ref=f4e64]: J
+            - generic [ref=f4e65]: "0"
+          - button "Train K, 0 samples" [ref=f4e66] [cursor=pointer]:
+            - generic [ref=f4e67]: K
+            - generic [ref=f4e68]: "0"
+          - button "Train L, 0 samples" [ref=f4e69] [cursor=pointer]:
+            - generic [ref=f4e70]: L
+            - generic [ref=f4e71]: "0"
+          - button "Train M, 0 samples" [ref=f4e72] [cursor=pointer]:
+            - generic [ref=f4e73]: M
+            - generic [ref=f4e74]: "0"
+          - button "Train N, 0 samples" [ref=f4e75] [cursor=pointer]:
+            - generic [ref=f4e76]: "N"
+            - generic [ref=f4e77]: "0"
+          - button "Train O, 0 samples" [ref=f4e78] [cursor=pointer]:
+            - generic [ref=f4e79]: O
+            - generic [ref=f4e80]: "0"
+          - button "Train P, 0 samples" [ref=f4e81] [cursor=pointer]:
+            - generic [ref=f4e82]: P
+            - generic [ref=f4e83]: "0"
+          - button "Train Q, 0 samples" [ref=f4e84] [cursor=pointer]:
+            - generic [ref=f4e85]: Q
+            - generic [ref=f4e86]: "0"
+          - button "Train R, 0 samples" [ref=f4e87] [cursor=pointer]:
+            - generic [ref=f4e88]: R
+            - generic [ref=f4e89]: "0"
+          - button "Train S, 0 samples" [ref=f4e90] [cursor=pointer]:
+            - generic [ref=f4e91]: S
+            - generic [ref=f4e92]: "0"
+          - button "Train T, 0 samples" [ref=f4e93] [cursor=pointer]:
+            - generic [ref=f4e94]: T
+            - generic [ref=f4e95]: "0"
+          - button "Train U, 0 samples" [ref=f4e96] [cursor=pointer]:
+            - generic [ref=f4e97]: U
+            - generic [ref=f4e98]: "0"
+          - button "Train V, 0 samples" [ref=f4e99] [cursor=pointer]:
+            - generic [ref=f4e100]: V
+            - generic [ref=f4e101]: "0"
+          - button "Train W, 0 samples" [ref=f4e102] [cursor=pointer]:
+            - generic [ref=f4e103]: W
+            - generic [ref=f4e104]: "0"
+          - button "Train X, 0 samples" [ref=f4e105] [cursor=pointer]:
+            - generic [ref=f4e106]: X
+            - generic [ref=f4e107]: "0"
+          - button "Train Y, 0 samples" [ref=f4e108] [cursor=pointer]:
+            - generic [ref=f4e109]: "Y"
+            - generic [ref=f4e110]: "0"
+          - button "Train Z, 0 samples" [ref=f4e111] [cursor=pointer]:
+            - generic [ref=f4e112]: Z
+            - generic [ref=f4e113]: "0"
+          - button "Train 0, 0 samples" [ref=f4e114] [cursor=pointer]:
+            - generic [ref=f4e115]: "0"
+            - generic [ref=f4e116]: "0"
+          - button "Train 1, 0 samples" [ref=f4e117] [cursor=pointer]:
+            - generic [ref=f4e118]: "1"
+            - generic [ref=f4e119]: "0"
+          - button "Train 2, 0 samples" [ref=f4e120] [cursor=pointer]:
+            - generic [ref=f4e121]: "2"
+            - generic [ref=f4e122]: "0"
+          - button "Train 3, 0 samples" [ref=f4e123] [cursor=pointer]:
+            - generic [ref=f4e124]: "3"
+            - generic [ref=f4e125]: "0"
+          - button "Train 4, 0 samples" [ref=f4e126] [cursor=pointer]:
+            - generic [ref=f4e127]: "4"
+            - generic [ref=f4e128]: "0"
+          - button "Train 5, 0 samples" [ref=f4e129] [cursor=pointer]:
+            - generic [ref=f4e130]: "5"
+            - generic [ref=f4e131]: "0"
+          - button "Train 6, 0 samples" [ref=f4e132] [cursor=pointer]:
+            - generic [ref=f4e133]: "6"
+            - generic [ref=f4e134]: "0"
+          - button "Train 7, 0 samples" [ref=f4e135] [cursor=pointer]:
+            - generic [ref=f4e136]: "7"
+            - generic [ref=f4e137]: "0"
+          - button "Train 8, 0 samples" [ref=f4e138] [cursor=pointer]:
+            - generic [ref=f4e139]: "8"
+            - generic [ref=f4e140]: "0"
+          - button "Train 9, 0 samples" [ref=f4e141] [cursor=pointer]:
+            - generic [ref=f4e142]: "9"
+            - generic [ref=f4e143]: "0"
+        - generic [ref=f4e144]:
+          - text: Hands in this sign
+          - combobox "Hands to record" [ref=f4e145]:
+            - option "Two hands · ISL fingerspelling" [selected]
+            - option "One hand"
+        - paragraph [ref=f4e146]: At least 3 samples unlock a label. Record several rounds with small angle and distance changes for better coverage.
+      - region [ref=f4e147]:
+        - generic [ref=f4e148]:
+          - generic [ref=f4e149]:
+            - paragraph [ref=f4e150]: 02 / Hold your pose
+            - heading [level=2] [ref=f4e151]:
+              - text: Recording
+              - emphasis [ref=f4e152]: A
+          - generic [ref=f4e153]: Camera off
+        - generic [ref=f4e155]:
+          - generic "Mirrored training camera preview" [ref=f4e156]
+          - generic [ref=f4e157]:
+            - heading "Make room for your hands." [level=3] [ref=f4e162]
+            - paragraph [ref=f4e163]: Open your camera when you’re ready. Choose the ISL label you know, then record a steady pose.
+            - button "Open training camera" [ref=f4e164] [cursor=pointer]
+        - generic [ref=f4e168]:
+          - button "Record A samples" [disabled] [ref=f4e169]
+          - generic [ref=f4e171]: 3–2–1, then up to 12 steady samples.
+        - status [ref=f4e172]: Choose a label, then open your camera. Nothing is recorded automatically.
+    - region [ref=f4e173]:
+      - generic [ref=f4e174]:
+        - generic [ref=f4e175]:
+          - paragraph [ref=f4e176]: 03 / Keep the good poses
+          - heading "Your A samples 0" [level=2] [ref=f4e177]:
+            - text: Your
+            - emphasis [ref=f4e178]: A
+            - text: samples
+            - generic [ref=f4e179]: "0"
+          - paragraph [ref=f4e180]: Landmark previews, not photographs. Remove a pose if it doesn’t match your intended sign.
+        - generic [ref=f4e181]:
+          - button "Export JSON" [disabled] [ref=f4e182]
+          - generic [ref=f4e186] [cursor=pointer]:
+            - text: Import JSON
+            - button "Import training sample JSON" [disabled] [ref=f4e190]
+      - paragraph [ref=f4e191]: Loading your saved samples…
+    - generic [ref=f4e192]:
+      - generic [ref=f4e193]: Stored in this browser · export a backup before clearing site data
+      - link "Try your vocabulary live" [ref=f4e197] [cursor=pointer]:
+        - /url: /?mode=sign
+  - button "Open Next.js Dev Tools" [ref=f4e205] [cursor=pointer]

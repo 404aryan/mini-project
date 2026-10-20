@@ -1,0 +1,11 @@
+# Offline data preparation and training only; the app never runs Python.
+# Pinned to the environment that produced the shipped data and model
+# (Python 3.13). Upstream source downloads are not frozen by this file; the
+# preparation scripts record source checksums in the provenance files.
+h5py==3.16.0
+mediapipe==1.1.1
+numpy==2.3.1
+opencv-contrib-python==5.0.0.93
+pandas==2.3.1
+pyarrow==26.0.0
+scikit-learn==1.8.0

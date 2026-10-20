@@ -1,0 +1,81 @@
+// Regression checks for restored compound signs and fullscreen playback controls.
+const { chromium, launchOptions, BASE, OUT } = require('./browser.cjs')
+
+const results = []
+const check = (name, ok) => { results.push({ name, ok }); console.log(`${ok ? 'PASS' : 'FAIL'} ${name}`) }
+
+;(async () => {
+  const browser = await chromium.launch(launchOptions())
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } })
+  const page = await context.newPage()
+  const errors = []
+  page.on('pageerror', (error) => errors.push(error.message))
+  await page.goto(BASE, { waitUntil: 'networkidle' })
+  await page.locator('#try-it').scrollIntoViewIfNeeded()
+  const ready = () => page.waitForFunction(() => /ready/.test(document.querySelector('.canvas-badge')?.textContent || ''))
+  const signing = () => page.waitForFunction(() => /signing/.test(document.querySelector('.canvas-badge')?.textContent || ''))
+  await ready()
+  await page.locator('.engine-selector button').filter({ hasText: 'Offline' }).click()
+
+  await page.locator('.translator-controls input').fill('WAIT_MINUTE')
+  await page.locator('.translator-controls input').press('Enter')
+  await signing()
+  check('canonical compound sign starts from Enter', true)
+  await page.locator('.terminal-footer-live [aria-label="Stop translation"]').click()
+  await ready()
+  check('Stop returns to ready', true)
+
+  await page.getByRole('button', { name: 'Maximize avatar canvas', exact: true }).click()
+  check('fullscreen retains playback and quick signs', await page.locator('.avatar-command-panel .translate-submit').isVisible() && await page.locator('.avatar-command-list button').first().isVisible())
+  await page.locator('.avatar-command-input input').fill('hello')
+  await page.locator('.avatar-speed input').focus()
+  await page.locator('.avatar-speed input').press('Home')
+  for (let step = 0; step < 6; step++) await page.locator('.avatar-speed input').press('ArrowRight')
+  await page.locator('.avatar-command-panel .translate-submit').click()
+  await signing()
+  await page.locator('.avatar-command-actions [aria-label="Stop translation"]').click()
+  await ready()
+  await page.keyboard.press('Escape')
+  check('Escape restores the normal canvas', await page.getByRole('button', { name: 'Maximize avatar canvas', exact: true }).isVisible())
+  check('fullscreen exit preserves input and speed', await page.locator('.translator-controls input').inputValue() === 'hello' && await page.locator('.terminal-footer-live input[type="range"]').inputValue() === '2')
+  check('fullscreen keeps a single avatar canvas', await page.locator('.avatar-canvas canvas').count() === 1)
+
+  await page.getByRole('button', { name: 'Maximize avatar canvas', exact: true }).click()
+  await page.locator('.mode-dock').getByRole('button', { name: 'About us', exact: true }).click()
+  await page.locator('.about-modal').waitFor({ state: 'visible' })
+  await page.keyboard.press('Escape')
+  check('Escape closes About without exiting fullscreen', await page.locator('.about-modal').count() === 0 && await page.getByRole('button', { name: 'Restore avatar canvas size', exact: true }).isVisible())
+  await page.keyboard.press('Escape')
+
+  await page.getByRole('button', { name: 'Maximize avatar canvas', exact: true }).click()
+  await page.locator('.mode-dock [aria-controls="sign-stage"]').click()
+  await page.locator('.sign-stage[aria-hidden="false"]').waitFor({ state: 'attached' })
+  await page.keyboard.press('Escape')
+  await page.locator('.sign-stage[aria-hidden="true"]').waitFor({ state: 'attached' })
+  check('Escape closes Sign to Text without exiting fullscreen', await page.getByRole('button', { name: 'Restore avatar canvas size', exact: true }).isVisible())
+  await page.keyboard.press('Escape')
+
+  for (const viewport of [{ width: 390, height: 844 }, { width: 390, height: 420 }, { width: 844, height: 390 }]) {
+    await page.setViewportSize(viewport)
+    await page.getByRole('button', { name: 'Maximize avatar canvas', exact: true }).click()
+    const list = page.locator('.avatar-command-list')
+    check(`quick signs have usable height at ${viewport.width}x${viewport.height}`, (await list.boundingBox()).height >= 96)
+    await list.getByRole('button', { name: 'NAME', exact: true }).click()
+    await signing()
+    check(`last quick sign remains reachable at ${viewport.width}x${viewport.height}`, await page.locator('.avatar-command-input input').inputValue() === 'NAME')
+    await page.locator('.avatar-command-actions [aria-label="Stop translation"]').click()
+    await ready()
+    await page.locator('.avatar-command-actions [aria-label="Reset avatar"]').click()
+    await ready()
+    check(`reset keeps controls usable at ${viewport.width}x${viewport.height}`, await page.locator('.avatar-command-panel .translate-submit').isEnabled())
+    await page.screenshot({ path: `${OUT}/playback-controls-${viewport.width}x${viewport.height}.png` })
+    await page.keyboard.press('Escape')
+    check(`Escape restores canvas at ${viewport.width}x${viewport.height}`, await page.getByRole('button', { name: 'Maximize avatar canvas', exact: true }).isVisible())
+  }
+
+  check('no uncaught page errors', errors.length === 0)
+  await browser.close()
+  const failed = results.filter((result) => !result.ok)
+  console.log(`\n${results.length - failed.length}/${results.length} passed`)
+  process.exit(failed.length ? 1 : 0)
+})().catch((error) => { console.error(error); process.exit(2) })

@@ -1,5 +1,8 @@
 # Avatar attribution
 
+For bundled sign-recognition dataset sources, licenses, preparation and
+evaluation results, see [SIGN-DATA.md](SIGN-DATA.md).
+
 `ybot.glb` is the "Y Bot" rig from [Adobe Mixamo](https://www.mixamo.com/),
 used under the Mixamo license (free for commercial and non-commercial use).
 
@@ -10,4 +13,5 @@ bone, plus warm per-vertex armour colours applied in `AvatarPlayer.tsx`. The
 model file is never modified.
 
 The previous "brunette" Ready Player Me avatar (`brunette.glb`, CC BY-NC 4.0)
-was removed on 2026-08-28.
+stopped being used on 2026-08-28, and the file itself was deleted from
+`public/models` on 2026-10-20, so it is no longer served.
