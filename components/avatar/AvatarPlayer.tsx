@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
@@ -129,6 +129,7 @@ export function AvatarPlayer({ requests, model = 'default', stopId = 0, resetId 
     pendingRef.current = []
     lastTokensRef.current = []
     skipReplayRef.current = true
+    playedIdRef.current = 0
     setFailure(null)
     setLoadAttempt((attempt) => attempt + 1)
   }, [resetId])
@@ -449,12 +450,23 @@ function disposeObject(root: THREE.Object3D) {
   })
 }
 
+// Scratch objects reused every frame to avoid per-frame GC pressure.
+const _scratchEuler = new THREE.Euler()
+const _scratchDeltaQ = new THREE.Quaternion()
+const _scratchResult = new THREE.Quaternion()
+
 function applyBoneDelta(bone: THREE.Object3D) {
   const userData = bone.userData as BoneUserData
   const delta = userData.delta ?? (userData.delta = { x: 0, y: 0, z: 0 })
-  const deltaQuaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(delta.x, delta.y, delta.z))
+  _scratchEuler.set(delta.x, delta.y, delta.z)
+  _scratchDeltaQ.setFromEuler(_scratchEuler)
   const gestureRest = userData.gestureRestQuaternion || userData.restQuaternion
-  bone.quaternion.copy(gestureRest ? gestureRest.clone().multiply(deltaQuaternion) : deltaQuaternion)
+  if (gestureRest) {
+    _scratchResult.copy(gestureRest).multiply(_scratchDeltaQ)
+    bone.quaternion.copy(_scratchResult)
+  } else {
+    bone.quaternion.copy(_scratchDeltaQ)
+  }
 }
 
 function getAvatarBone(avatar: THREE.Object3D, boneName: string) {

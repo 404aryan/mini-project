@@ -102,6 +102,11 @@ function DockItem({ item, index, active, compact, live, pointerX, magnify, reduc
   const [hovered, setHovered] = useState(false)
   const [pressed, setPressed] = useState(0)
   const [ripple, setRipple] = useState<{ x: number; y: number; key: number } | null>(null)
+  const mountedRef = useRef(true)
+  useEffect(() => {
+    mountedRef.current = true
+    return () => { mountedRef.current = false }
+  }, [])
   const distanceScale = useTransform(pointerX, (x) => {
     if (!magnify || !Number.isFinite(x)) return 1
     const rect = iconRef.current?.getBoundingClientRect()
@@ -134,6 +139,6 @@ function DockItem({ item, index, active, compact, live, pointerX, magnify, reduc
     </motion.span>
     {!compact && <motion.span className="dock-label" initial={{ opacity: 0, y: reduced ? 0 : 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: reduced ? 0 : .85 + index * .07 }}>{item.label}</motion.span>}
     <AnimatePresence>{hovered && <motion.span className="dock-tooltip" aria-hidden="true" initial={{ opacity: 0, y: reduced ? 0 : 8, x: '-50%' }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: reduced ? 0 : 4 }} transition={{ type: 'spring', stiffness: 300, damping: 22 }}>{item.label}</motion.span>}</AnimatePresence>
-    <span className="dock-ripple-bound" aria-hidden="true"><AnimatePresence>{ripple && <motion.span key={ripple.key} className="dock-ripple" style={{ left: ripple.x, top: ripple.y }} initial={{ scale: 0, opacity: .35 }} animate={{ scale: reduced ? 1 : 7, opacity: 0 }} transition={{ duration: .5 }} onAnimationComplete={() => setRipple((current) => current?.key === ripple.key ? null : current)} />}</AnimatePresence></span>
+    <span className="dock-ripple-bound" aria-hidden="true"><AnimatePresence>{ripple && <motion.span key={ripple.key} className="dock-ripple" style={{ left: ripple.x, top: ripple.y }} initial={{ scale: 0, opacity: .35 }} animate={{ scale: reduced ? 1 : 7, opacity: 0 }} transition={{ duration: .5 }} onAnimationComplete={() => { if (mountedRef.current) setRipple((current) => current?.key === ripple.key ? null : current) }} />}</AnimatePresence></span>
   </motion.button>
 }
