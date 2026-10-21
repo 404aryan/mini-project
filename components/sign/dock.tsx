@@ -19,7 +19,7 @@ const items = [
 type ItemId = typeof items[number]['id']
 
 export function Dock({ signActive, cameraLive, onSign, onExit, onAbout }: {
-  signActive: boolean; cameraLive: boolean; onSign: (origin: PortalOrigin) => void; onExit: () => void; onAbout: () => void
+  signActive: boolean; cameraLive: boolean; onSign: (origin: PortalOrigin) => void; onExit: () => void; onAbout: (from: HTMLElement | null) => void
 }) {
   const [section, setSection] = useState<ItemId>('speak')
   const [finePointer, setFinePointer] = useState(false)
@@ -50,8 +50,10 @@ export function Dock({ signActive, cameraLive, onSign, onExit, onAbout }: {
     }
     if (item.id === 'about') {
       // Leave sign mode first; the dialog opens after its focus return has run.
-      if (signActive) { onExit(); requestAnimationFrame(onAbout) }
-      else onAbout()
+      // The card grows out of this dock item, measured once the dock has settled.
+      const open = () => onAbout(buttons.current[items.indexOf(item)] ?? null)
+      if (signActive) { onExit(); requestAnimationFrame(open) }
+      else open()
       return
     }
     setSection(item.id)

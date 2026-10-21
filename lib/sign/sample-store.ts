@@ -118,6 +118,12 @@ export async function readRecognitionDataset() {
   return { dataset: recognitionDataset(bundled, local), warning: warnings.join(' ') }
 }
 
+/** The shipped library alone, for measurements that must not include personal recordings. */
+export async function readBundledRecognitionDataset() {
+  try { return { dataset: recognitionDataset(await readBundledDataset(), emptyDataset()), warning: '' } }
+  catch (error) { return { dataset: emptyDataset(), warning: error instanceof Error ? error.message : 'Bundled samples unavailable.' } }
+}
+
 /** Personal samples replace bundled ones only for the same label and hand count
  * (with at least three of them); every other bundled sign is kept, so a full
  * device library never removes unrelated built-in coverage. */

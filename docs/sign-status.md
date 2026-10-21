@@ -1,5 +1,15 @@
 # Sign → Text — current status
 
+## Independent signer validation tooling, 21 October 2026
+
+`/sign/validate` runs facilitated, consented sessions through the live camera
+pipeline with the shipped models only (personal recordings are ignored). It
+stores recognized outputs and timings, never video or landmarks, and exports
+JSON. `scripts/evaluate-signer-validation.cjs` reports the Stage 7 metrics with
+intervals and per-signer, device and lighting breakdowns, and refuses an
+independent claim with fewer than 3 unseen ISL signers. **No signer session has
+been run yet.** See [signer-validation.md](signer-validation.md).
+
 ## Transcript, correction and sentence output, 21 October 2026
 
 Stage 6 records each committed sign with its kind, canonical ID, readable text,

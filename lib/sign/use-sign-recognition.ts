@@ -7,10 +7,10 @@ import { SignStabilizer, type StableSign } from './stabilizer'
 import type { SignCandidate, SignEvent, SignRecognizer, SignSource, TokenKind, TranscriptToken } from './types'
 import type { TrackingStatus } from './signer-tracker'
 import { UnifiedSignRecognizer } from './unified-recognizer'
-import { addStoredSamples, readRecognitionDataset, subscribeSampleChanges } from './sample-store'
+import { addStoredSamples, readBundledRecognitionDataset, readRecognitionDataset, subscribeSampleChanges } from './sample-store'
 import { readableSignLabel } from '../islVocabulary'
 
-type Snapshot = StableSign & { handCount: number; tokenId: string; activity?: string; routing?: string; candidates?: SignCandidate[]; quality?: string[] }
+type Snapshot = StableSign & { handCount: number; tokenId: string; activity?: string; routing?: string; candidates?: SignCandidate[]; quality?: string[]; at?: number }
 type ActiveRecognizer = SignRecognizer & { labels: string[]; sampleCount: number; replace(input: unknown): void; dispose?: () => void; reset?: () => void; error?: string; warning?: string; usesTrainedModel?: boolean; confirmCandidate?: (label: string) => boolean }
 const initial: Snapshot = { phase: 'no-hand', label: null, confidence: 0, progress: 0, commit: null, handCount: 0, tokenId: '', activity: 'ready', candidates: [] }
 // Names what each source's score measures; none of them is a probability of being right.
@@ -25,11 +25,12 @@ function signEvent(id: string, label: string, kind: TokenKind, source: SignSourc
     ...(confidence > 0 && Number.isFinite(confidence) ? { score: { value: Math.round(confidence * 100) / 100, basis: SCORE_BASIS[source] } } : {}) }
 }
 
-export function useSignRecognition({ active, live, videoRef, canvasRef, ringRef, onCommit, kind = 'static', bodyTracking = false }: {
+/** `personal: false` measures the shipped models alone, ignoring recordings saved in this browser. */
+export function useSignRecognition({ active, live, videoRef, canvasRef, ringRef, onCommit, kind = 'static', bodyTracking = false, personal = true }: {
   active: boolean; live: boolean; videoRef: RefObject<HTMLVideoElement | null>
   canvasRef: RefObject<HTMLCanvasElement | null>; ringRef: RefObject<SVGCircleElement | null>
   onCommit: (token: TranscriptToken) => void
-  kind?: 'static' | 'words' | 'auto' | 'numbers'; bodyTracking?: boolean
+  kind?: 'static' | 'words' | 'auto' | 'numbers'; bodyTracking?: boolean; personal?: boolean
 }) {
   const [model, setModel] = useState<'loading' | 'ready' | 'unavailable'>('loading')
   const [dataset, setDataset] = useState({ loading: true, labels: 0, samples: 0, readySigns: [] as string[], error: '', kind })
@@ -68,12 +69,16 @@ export function useSignRecognition({ active, live, videoRef, canvasRef, ringRef,
     // Keep the current classifier through a refresh. Window focus and library
     // updates must not look like a hand release or restart the held-letter lock.
     setDataset((d) => ({ ...d, kind, labels: d.kind === kind ? d.labels : 0, samples: d.kind === kind ? d.samples : 0, readySigns: d.kind === kind ? d.readySigns : [], loading: true, error: '' }))
+    const readStatic = () => personal ? readRecognitionDataset() : readBundledRecognitionDataset()
+    const readWords = async () => {
+      if (personal) return (await import('./word-store')).readWordRecognitionDataset({ personalOnly: true })
+      const { emptyWordDataset } = await import('./word-data')
+      return { dataset: emptyWordDataset(), personal: emptyWordDataset(), warning: '' }
+    }
     const load = async (): Promise<{ saved: unknown; warning: string; recognizer: ActiveRecognizer } | null> => {
       if (kind === 'auto') {
-        const [{ readWordRecognitionDataset }, wordRecognizers, { trainedWordLabels }] = await Promise.all([import('./word-store'), import('./word-recognizer'), import('./word-data')])
-        const [{ dataset: letters, warning: staticWarning }, { dataset: words, personal, warning: wordWarning }] = await Promise.all([
-          readRecognitionDataset(), readWordRecognitionDataset({ personalOnly: true }),
-        ])
+        const [wordRecognizers, { trainedWordLabels }] = await Promise.all([import('./word-recognizer'), import('./word-data')])
+        const [{ dataset: letters, warning: staticWarning }, { dataset: words, personal: own, warning: wordWarning }] = await Promise.all([readStatic(), readWords()])
         if (cancelled) return null
         let current = recognizerRef.current as UnifiedSignRecognizer | null
         let warning = [staticWarning,wordWarning].filter(Boolean).join(' ')
@@ -84,14 +89,14 @@ export function useSignRecognition({ active, live, videoRef, canvasRef, ringRef,
           current = new UnifiedSignRecognizer(word,new KnnSignRecognizer(undefined,spellingLabel))
         }
         if (!current.hasWordBackend) {
-          try { if (trainedWordLabels((personal ?? words).samples).length) current.setWordBackend(wordRecognizers.createWordRecognizer()) } catch { /* Keep static recognition available. */ }
+          try { if (trainedWordLabels((own ?? words).samples).length) current.setWordBackend(wordRecognizers.createWordRecognizer()) } catch { /* Keep static recognition available. */ }
           warning = [warning,current.hasWordBackend ? 'Built-in word model unavailable. Your personal words, letters and numbers still work.' : 'Word model unavailable. Auto preview can still suggest letters and numbers.'].filter(Boolean).join(' ')
         }
-        return { saved: { letters, words: personal ?? words }, warning, recognizer: current }
+        return { saved: { letters, words: own ?? words }, warning, recognizer: current }
       }
       if (kind === 'words') {
-        const [{ readWordRecognitionDataset }, wordRecognizers, { trainedWordLabels }] = await Promise.all([import('./word-store'), import('./word-recognizer'), import('./word-data')])
-        const { dataset: saved, personal, warning } = await readWordRecognitionDataset({ personalOnly: true })
+        const [wordRecognizers, { trainedWordLabels }] = await Promise.all([import('./word-recognizer'), import('./word-data')])
+        const { dataset: saved, personal: own, warning } = await readWords()
         if (cancelled) return null
         let recognizer: ActiveRecognizer | null = recognizerRef.current, fallback = ''
         if (!recognizer) {
@@ -99,14 +104,14 @@ export function useSignRecognition({ active, live, videoRef, canvasRef, ringRef,
             recognizer = await wordRecognizers.createTrainedWordRecognizer()
           } catch (error) {
             // Saved personal words still work without the pretrained model.
-            if (!trainedWordLabels(personal.samples).length) throw error
+            if (!trainedWordLabels(own.samples).length) throw error
             recognizer = wordRecognizers.createWordRecognizer()
             fallback = `${error instanceof Error ? error.message : 'The word model could not load.'} Your saved words still work.`
           }
         }
-        return { saved: recognizer.usesTrainedModel ? personal : saved, warning: [warning, fallback].filter(Boolean).join(' '), recognizer }
+        return { saved: recognizer.usesTrainedModel ? own : saved, warning: [warning, fallback].filter(Boolean).join(' '), recognizer }
       }
-      const { dataset: saved, warning } = await readRecognitionDataset()
+      const { dataset: saved, warning } = await readStatic()
       // Numbers intent compares only digit references, so a digit cannot lose to a letter with the same handshape.
       return { saved, warning, recognizer: new KnnSignRecognizer(undefined, kind === 'numbers' ? numberLabel : spellingLabel) }
     }
@@ -125,10 +130,10 @@ export function useSignRecognition({ active, live, videoRef, canvasRef, ringRef,
       }
     })
     return () => { cancelled = true }
-  }, [active, retry, libraryRevision, kind])
+  }, [active, retry, libraryRevision, kind, personal])
 
   useEffect(() => {
-    if (!active) return
+    if (!active || !personal) return
     if (kind === 'words' || kind === 'auto') {
       let cancelled = false, cleanup: (() => void) | undefined
       void import('./word-store').then(({ subscribeWordChanges }) => {
@@ -138,7 +143,7 @@ export function useSignRecognition({ active, live, videoRef, canvasRef, ringRef,
       return () => { cancelled = true; cleanup?.(); staticCleanup?.() }
     }
     return subscribeSampleChanges(() => setLibraryRevision((n) => n + 1))
-  }, [active, kind])
+  }, [active, kind, personal])
 
   const importSamples = useCallback(async (input: unknown) => {
     if (kind === 'words' || kind === 'auto' && (input as { normalization?: string })?.normalization === 'sequence-wrist-motion-v1') {
@@ -219,7 +224,7 @@ export function useSignRecognition({ active, live, videoRef, canvasRef, ringRef,
         offered.current = prediction.candidates ?? []
         if (stable.commit || stable.phase !== lastPhase || frame.timestamp - lastPublish >= 120) {
           lastPublish = frame.timestamp; lastPhase = stable.phase
-          setSnapshot({ ...stable, handCount: frame.hands.length, tokenId, activity: prediction.wordEvent, routing: prediction.routing, candidates: prediction.candidates, quality: frame.signer?.quality })
+          setSnapshot({ ...stable, handCount: frame.hands.length, tokenId, activity: prediction.wordEvent, routing: prediction.routing, candidates: prediction.candidates, quality: frame.signer?.quality, at: Math.round(performance.timeOrigin + frame.timestamp) })
         }
       },
       onError() { if (!abort.signal.aborted) { overlay.clear(); setModel('unavailable'); setSnapshot(initial) } },

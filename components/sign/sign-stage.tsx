@@ -28,10 +28,12 @@ const messages = {
   live: ['', ''],
 } satisfies Record<CameraStatus, [string, string]>
 
-export function SignStage({ active, status, origin, attachVideo, onAccept, onRetry, onPause, onClose }: {
+export function SignStage({ active, status, origin, attachVideo, onAccept, onRetry, onPause, onClose, onAvatarPreview }: {
   active: boolean; status: CameraStatus; origin: PortalOrigin
   attachVideo: (video: HTMLVideoElement | null) => void
   onAccept: () => void; onRetry: () => void; onPause: () => void; onClose: () => void
+  /** Reports whether the avatar picture-in-picture is showing, so the page can make it clickable. */
+  onAvatarPreview?: (visible: boolean) => void
 }) {
   const reduced = usePrefersReducedMotion()
   const [viewport, setViewport] = useState({ width: 0, height: 0 })
@@ -83,11 +85,14 @@ export function SignStage({ active, status, origin, attachVideo, onAccept, onRet
     const pip = document.querySelector<HTMLElement>('.sign-avatar-pip')
     const stage = stageRef.current
     if (!pip || !stage || !frameRef.current) return
+    let shown: boolean | null = null
     const position = () => {
       const frame = frameRef.current!.getBoundingClientRect()
       const mobile = innerWidth < 1000
       const top = Math.max(80, frame.top + 18)
-      pip.style.setProperty('--sign-pip-visible', live && showAvatar && !fullscreen.expanded && innerWidth >= 1480 && frame.bottom > 200 ? '1' : '0')
+      const visible = live && showAvatar && !fullscreen.expanded && innerWidth >= 1480 && frame.bottom > 200
+      pip.style.setProperty('--sign-pip-visible', visible ? '1' : '0')
+      if (visible !== shown) { shown = visible; onAvatarPreview?.(visible) }
       pip.style.setProperty('--sign-pip-top', mobile ? `${top}px` : 'auto')
       pip.style.setProperty('--sign-pip-right', mobile ? `${Math.max(18, innerWidth - frame.right + 18)}px` : '24px')
       pip.style.setProperty('--sign-pip-bottom', mobile ? 'auto' : '105px')
@@ -98,8 +103,9 @@ export function SignStage({ active, status, origin, attachVideo, onAccept, onRet
     return () => {
       resize.disconnect(); stage.removeEventListener('scroll', position); window.removeEventListener('resize', position)
       ;['visible', 'top', 'right', 'bottom'].forEach((name) => pip.style.removeProperty(`--sign-pip-${name}`))
+      onAvatarPreview?.(false)
     }
-  }, [active, live, showAvatar, fullscreen.expanded])
+  }, [active, live, showAvatar, fullscreen.expanded, onAvatarPreview])
   useEffect(() => {
     const resize = () => setViewport({ width: innerWidth, height: innerHeight })
     const network = () => setOffline(!navigator.onLine)
