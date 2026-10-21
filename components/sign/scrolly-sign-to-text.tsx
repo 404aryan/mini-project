@@ -21,8 +21,9 @@ const getLayout = () => matchMedia(PIN_QUERY).matches
 function CopyBeat({ index, progress }: { index: number; progress: MotionValue<number> }) {
   const beat = STORY_BEATS[index]
   const from = index / 4, to = (index + 1) / 4
-  const opacity = useTransform(progress, index === 0 ? [0, to - .04, to] : index === 3 ? [from, from + .04, 1] : [from, from + .04, to - .04, to], index === 0 ? [1, 1, 0] : index === 3 ? [0, 1, 1] : [0, 1, 1, 0])
-  const y = useTransform(progress, [from, from + .04, to - .04, to], [20, 0, 0, -20])
+  const inputPoints = index === 0 ? [0, to - .04, to] : index === 3 ? [from, from + .04, 1] : [from, from + .04, to - .04, to]
+  const opacity = useTransform(progress, inputPoints, index === 0 ? [1, 1, 0] : index === 3 ? [0, 1, 1] : [0, 1, 1, 0])
+  const y = useTransform(progress, inputPoints, index === 0 ? [0, 0, -20] : index === 3 ? [20, 0, 0] : [20, 0, 0, -20])
   return <motion.li style={{ opacity, y }} className="sign-story-beat"><span className="sign-story-beat-number">{beat.number} / A new way to connect</span><h3>{beat.title}</h3><p>{beat.text}</p><span className="sign-story-beat-tag">{beat.tag}</span></motion.li>
 }
 

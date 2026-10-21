@@ -238,8 +238,9 @@ export default function Page() {
   useEffect(() => {
     const marquee = marqueeTrackRef.current?.getAnimations()[0]
     if (!marquee || reducedMotion) return
-    let lastY = scrollY, lastTime = performance.now(), boost = 0, frame = 0
+    let lastY = scrollY, lastTime = performance.now(), boost = 0, frame = 0, disposed = false
     const settle = () => {
+      if (disposed) return
       boost *= .92
       const done = Math.abs(boost) < .02
       if (done) boost = 0
@@ -247,6 +248,7 @@ export default function Page() {
       frame = done ? 0 : requestAnimationFrame(settle)
     }
     const onScroll = () => {
+      if (disposed) return
       const now = performance.now()
       const velocity = (scrollY - lastY) / Math.max(16, now - lastTime)
       lastY = scrollY
@@ -256,6 +258,7 @@ export default function Page() {
     }
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => {
+      disposed = true
       window.removeEventListener('scroll', onScroll)
       cancelAnimationFrame(frame)
       marquee.playbackRate = 1
@@ -458,6 +461,7 @@ export default function Page() {
       // A fresh recognition session restarts `event.results` from index 0.
       liveCommittedRef.current = []
       lastHeardRef.current = null
+      restartFailuresRef.current = 0
     }
     recognition.onend = () => {
       speechStateRef.current = 'idle'
@@ -694,7 +698,7 @@ export default function Page() {
                 </div>
                 <div className="avatar-selector" role="group" aria-label="Choose avatar"><span>AVATAR</span><button type="button" className={avatarModel === 'default' ? 'is-selected' : ''} onClick={() => setAvatarModel('default')} aria-pressed={avatarModel === 'default'}>Default</button><button type="button" className={avatarModel === 'human' ? 'is-selected' : ''} onClick={() => setAvatarModel('human')} aria-pressed={avatarModel === 'human'}>Human</button></div>
               </div>
-              <aside className="avatar-command-panel" aria-label="Avatar playback and sign commands">
+              <aside className="avatar-command-panel" aria-label="Avatar playback and sign commands" inert={!isMaximized}>
                 <div className="avatar-command-input">
                   <input value={translation} onChange={(event) => { setTranslation(event.target.value); setTranslationNotice(null) }} onKeyDown={(event) => event.key === 'Enter' && runTranslation()} aria-label="Text to translate into Indian Sign Language" placeholder="Type a message, then press Enter…" />
                   <button type="button" onClick={runTranslation} className="voice-input translate-submit" aria-label="Sign the typed message" title="Sign the typed message (Enter)" disabled={!translation.trim()}><Play size={13} fill="currentColor" /><span>Play</span></button>
@@ -708,7 +712,7 @@ export default function Page() {
                 </div>
               </aside>
               </div>
-              <div className="translator-controls">
+              <div className="translator-controls" inert={isMaximized}>
                 <input value={translation} onChange={(event) => { setTranslation(event.target.value); setTranslationNotice(null) }} onKeyDown={(event) => event.key === 'Enter' && runTranslation()} aria-label="Text to translate into Indian Sign Language" placeholder="Type a message, then press Enter…" />
                 <button type="button" onClick={runTranslation} className="voice-input translate-submit" aria-label="Sign the typed message" title="Sign the typed message (Enter)" disabled={!translation.trim()}><Play size={13} fill="currentColor" /><span>Play</span></button>
                 <button type="button" onClick={toggleVoiceInput} className={isListening ? 'voice-input is-listening' : 'voice-input'} aria-label={isListening ? 'Stop voice input' : 'Start voice input'} title={speechSupported ? (isListening ? 'Stop listening' : 'Speak your message') : 'Voice input is not supported in this browser'} disabled={!speechSupported}>
@@ -718,8 +722,8 @@ export default function Page() {
                 <button type="button" onClick={toggleLiveMode} className={liveMode ? 'live-translation is-active' : 'live-translation'} disabled={!speechSupported} title="Continuously convert final speech into ISL"><span /> Live</button>
                 <button type="button" onClick={toggleSpeechLanguage} className="live-translation speech-language" aria-label={`Voice language: ${SPEECH_LANGUAGES[speechLang].name}. Switch language`} title="Switch voice language (English / Hindi)" disabled={!speechSupported}>{SPEECH_LANGUAGES[speechLang].short}</button>
               </div>
-              <div className="terminal-footer terminal-footer-live"><button type="button" onClick={stopTranslation} className="terminal-play terminal-stop" aria-label="Stop translation"><Square size={11} fill="currentColor" /></button><button type="button" onClick={resetAvatar} className="terminal-play terminal-stop" aria-label="Reset avatar" title="Reset avatar to rest pose" style={{marginLeft: '4px'}}>↺</button><span aria-live="polite">{speechError ?? translationNotice ?? (liveMode ?'live translation is listening' : avatarState === 'signing' ? 'translation in progress' : avatarState === 'loading' ? 'loading avatar' : avatarState === 'error' ? 'avatar unavailable' : 'ready — words or A–Z fingerspelling')}</span><label style={{display:'flex',alignItems:'center',gap:'4px',fontSize:'11px',opacity:0.7,marginLeft:'auto'}} title="Animation speed">Speed<input type="range" min="0.5" max="3" step="0.25" value={speed} onChange={(e) => setSpeed(Number(e.target.value))} style={{width:'60px',accentColor:'currentColor'}} />{speed}×</label><span className="terminal-time">ISL</span></div>
-              <div className="quick-phrases" aria-label="Try a supported sign">
+              <div className="terminal-footer terminal-footer-live" inert={isMaximized}><button type="button" onClick={stopTranslation} className="terminal-play terminal-stop" aria-label="Stop translation"><Square size={11} fill="currentColor" /></button><button type="button" onClick={resetAvatar} className="terminal-play terminal-stop" aria-label="Reset avatar" title="Reset avatar to rest pose" style={{marginLeft: '4px'}}>↺</button><span aria-live="polite">{speechError ?? translationNotice ?? (liveMode ?'live translation is listening' : avatarState === 'signing' ? 'translation in progress' : avatarState === 'loading' ? 'loading avatar' : avatarState === 'error' ? 'avatar unavailable' : 'ready — words or A–Z fingerspelling')}</span><label style={{display:'flex',alignItems:'center',gap:'4px',fontSize:'11px',opacity:0.7,marginLeft:'auto'}} title="Animation speed">Speed<input type="range" min="0.5" max="3" step="0.25" value={speed} onChange={(e) => setSpeed(Number(e.target.value))} style={{width:'60px',accentColor:'currentColor'}} />{speed}×</label><span className="terminal-time">ISL</span></div>
+              <div className="quick-phrases" aria-label="Try a supported sign" inert={isMaximized}>
                 <button type="button" className="quick-phrases-arrow" onClick={() => scrollQuickPhrases(-1)} aria-label="Show previous signs"><ChevronLeft size={15} /></button>
                 <div ref={quickPhrasesRef} className="quick-phrases-track">
                   {quickPhrases.map((word) => <button key={word} onClick={() => playQuickPhrase(word)}>{word}</button>)}
@@ -955,16 +959,23 @@ function CameraModeTile({ hidden, onOpen }: { hidden: boolean; onOpen: (origin: 
   const [covering, setCovering] = useState(false)
   useEffect(() => {
     let frame = 0
+    let disposed = false
     const check = () => {
       frame = 0
+      if (disposed) return
       const tile = ref.current?.getBoundingClientRect(), demo = document.getElementById('try-it')?.getBoundingClientRect()
       setCovering(!!tile && !!demo && tile.left < demo.right && tile.right > demo.left && tile.top < demo.bottom && tile.bottom > demo.top)
     }
-    const schedule = () => { if (!frame) frame = requestAnimationFrame(check) }
+    const schedule = () => { if (!disposed && !frame) frame = requestAnimationFrame(check) }
     check()
     window.addEventListener('scroll', schedule, { passive: true })
     window.addEventListener('resize', schedule)
-    return () => { cancelAnimationFrame(frame); window.removeEventListener('scroll', schedule); window.removeEventListener('resize', schedule) }
+    return () => {
+      disposed = true
+      cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', schedule)
+      window.removeEventListener('resize', schedule)
+    }
   }, [])
   const away = hidden || covering
   return <button ref={ref} type="button" className={away ? 'camera-mode-tile is-away' : 'camera-mode-tile'} inert={away} aria-label="Open Sign to Text camera mode" aria-controls="sign-stage"

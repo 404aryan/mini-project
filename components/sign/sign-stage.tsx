@@ -144,7 +144,7 @@ export function SignStage({ active, status, origin, attachVideo, onAccept, onRet
     aria-labelledby="sign-stage-title" aria-hidden={!active} inert={!active}
     style={{ pointerEvents: active ? 'auto' : 'none', clipPath: reduced || fullscreen.expanded ? 'none' : portalClip }} initial={false}
     animate={{ opacity: active ? 1 : 0 }}
-    transition={{ opacity: { duration: reduced ? .15 : .18, delay: active || reduced ? 0 : .3 } }}>
+    transition={{ opacity: { duration: reduced ? .15 : .18, delay: active || reduced || fullscreen.expanded ? 0 : .3 } }}>
     <header className="sign-stage-header">
       <div><h2 id="sign-stage-title">You Sign. <em>We Speak.</em></h2><span className="sign-beta">Experimental · {dataset.loading ? 'Preparing recognition' : `${dataset.labels} ${kind === 'words' ? 'word entries' : 'entries'} available`}</span></div>
       <button type="button" className="sign-stage-close" aria-label="Close Sign to Text" onClick={onClose}><X size={20} /></button>
