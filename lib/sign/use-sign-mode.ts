@@ -188,12 +188,12 @@ export function useSignMode({ surface = 'stage' }: { surface?: 'stage' | 'traini
     const escape = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && !event.defaultPrevented && !document.fullscreenElement) close()
       if (event.key === 'Tab') {
-        const controls = Array.from(document.querySelectorAll<HTMLElement>('.sign-stage a[href], .sign-stage button:not(:disabled), .sign-stage input:not(:disabled), .sign-stage select:not(:disabled), .sign-stage textarea:not(:disabled), .sign-stage summary, .sign-stage [tabindex]:not([tabindex="-1"]), .mode-dock button')).filter((element) => element.getClientRects().length > 0 && !(element.closest('.mode-dock') && document.querySelector('.sign-stage.is-expanded')))
+        const controls = Array.from(document.querySelectorAll<HTMLElement>('.sign-stage a[href], .sign-stage button:not(:disabled), .sign-stage input:not(:disabled), .sign-stage select:not(:disabled), .sign-stage textarea:not(:disabled), .sign-stage summary, .sign-stage [tabindex]:not([tabindex="-1"]), .sign-pip-open, .sign-pip-confirm button, .mode-dock button')).filter((element) => element.getClientRects().length > 0 && !(element.closest('.mode-dock') && document.querySelector('.sign-stage.is-expanded')))
         const index = controls.indexOf(document.activeElement as HTMLElement)
         if (!controls.length) return
         // Focus on another control inside the stage or dock keeps normal tab order;
         // only focus that escaped the dialog is pulled back in.
-        if (index === -1 && document.activeElement?.closest('.sign-stage, .mode-dock')) return
+        if (index === -1 && document.activeElement?.closest('.sign-stage, .sign-pip-open, .sign-pip-confirm, .mode-dock')) return
         if (event.shiftKey && index <= 0) { event.preventDefault(); controls[controls.length - 1].focus() }
         else if (!event.shiftKey && (index === controls.length - 1 || index === -1)) { event.preventDefault(); controls[0].focus() }
       }

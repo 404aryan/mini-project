@@ -62,7 +62,7 @@ const check = (name, ok, detail = '') => { results.push({ name, ok, detail }); c
   const dockZ = await page.evaluate(() => Number(getComputedStyle(document.querySelector('.mode-dock')).zIndex))
   check('backdrop above dock', backdropZ > dockZ, `${backdropZ} vs ${dockZ}`)
   await page.keyboard.press('Escape')
-  check('Escape closes account dialog', await page.locator('.auth-modal').count() === 0)
+  check('Escape closes account dialog', await page.locator('.auth-modal').waitFor({ state: 'detached', timeout: 3000 }).then(() => true, () => false))
   check('focus returns to opener', await page.evaluate(() => document.activeElement?.classList.contains('nav-cta')))
 
   // Local profile verification (E001)
@@ -90,7 +90,7 @@ const check = (name, ok, detail = '') => { results.push({ name, ok, detail }); c
   await page.click('.account-dropdown button:has-text("Dashboard")')
   await page.waitForSelector('.dashboard-modal')
   await page.keyboard.press('Escape')
-  check('Escape closes dashboard', await page.locator('.dashboard-modal').count() === 0)
+  check('Escape closes dashboard', await page.locator('.dashboard-modal').waitFor({ state: 'detached', timeout: 3000 }).then(() => true, () => false))
 
   // Translate button (E006)
   await page.locator('#try-it').scrollIntoViewIfNeeded()
@@ -160,6 +160,7 @@ const check = (name, ok, detail = '') => { results.push({ name, ok, detail }); c
   await page.evaluate(() => document.querySelector('.menu-toggle')?.click())
   await page.locator('.auth-link').click()
   await page.waitForSelector('.auth-modal')
+  await page.waitForTimeout(700) // let the dialog finish springing into place
   const scroll = await page.evaluate(() => { const m = document.querySelector('.auth-modal'); const s = getComputedStyle(m); return { max: s.maxHeight, overflow: s.overflowY, fits: m.getBoundingClientRect().bottom <= innerHeight + 1, scrollable: m.scrollHeight > m.clientHeight } })
   check('dialog fits short viewport and scrolls', scroll.fits && scroll.overflow === 'auto' && scroll.scrollable, JSON.stringify(scroll))
   await page.keyboard.press('Escape')

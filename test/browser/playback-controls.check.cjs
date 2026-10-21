@@ -44,7 +44,7 @@ const check = (name, ok) => { results.push({ name, ok }); console.log(`${ok ? 'P
   await page.locator('.mode-dock').getByRole('button', { name: 'About us', exact: true }).click()
   await page.locator('.about-modal').waitFor({ state: 'visible' })
   await page.keyboard.press('Escape')
-  check('Escape closes About without exiting fullscreen', await page.locator('.about-modal').count() === 0 && await page.getByRole('button', { name: 'Restore avatar canvas size', exact: true }).isVisible())
+  check('Escape closes About without exiting fullscreen', await page.locator('.about-modal').waitFor({ state: 'detached', timeout: 3000 }).then(() => true, () => false) && await page.getByRole('button', { name: 'Restore avatar canvas size', exact: true }).isVisible())
   await page.keyboard.press('Escape')
 
   await page.getByRole('button', { name: 'Maximize avatar canvas', exact: true }).click()

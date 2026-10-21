@@ -32,9 +32,9 @@ const dataset = (label) => ({
 
 // Exercise the actual recognition hook, classifier and stabilizer while controlling
 // camera frames and async storage. No browser, network, or saved user data is used.
-function host({ initialKind = 'static', wordRecognizer, failWordModel = false, bodyTracking = false } = {}) {
+function host({ initialKind = 'static', wordRecognizer, failWordModel = false, bodyTracking = false, personal = true } = {}) {
   const slots = [], effects = [], reads = [], commits = []
-  let cursor = 0, dirty = true, hook, notify, loop, starts = 0
+  let cursor = 0, dirty = true, hook, notify, loop, starts = 0, bundledReads = 0
   let active = true, live = true, now = 0, kind = initialKind
   const refs = { videoRef: { current: {} }, canvasRef: { current: {} }, ringRef: { current: {} } }
   const react = {
@@ -80,6 +80,7 @@ function host({ initialKind = 'static', wordRecognizer, failWordModel = false, b
       }
       if (name === './sample-store') return {
         readRecognitionDataset: () => new Promise((resolve, reject) => reads.push({ resolve, reject })),
+        readBundledRecognitionDataset: async () => { bundledReads++; return { dataset: dataset('B'), warning: '' } },
         subscribeSampleChanges: (fn) => { notify = fn; return () => { notify = null } },
       }
       if (name === './word-store') return {
@@ -97,12 +98,14 @@ function host({ initialKind = 'static', wordRecognizer, failWordModel = false, b
     commits, reads,
     get current() { return hook },
     get starts() { return starts },
+    get bundledReads() { return bundledReads },
+    get subscribed() { return !!notify },
     flush() {
       let count = 0
       while (dirty) {
         assert.ok(count++ < 25, 'Recognition updates must settle')
         dirty = false; cursor = 0
-        hook = exports.useSignRecognition({ active, live, kind, bodyTracking, ...refs, onCommit: (token) => commits.push(token) })
+        hook = exports.useSignRecognition({ active, live, kind, bodyTracking, personal, ...refs, onCommit: (token) => commits.push(token) })
         while (effects.length) effects.shift()()
       }
     },
@@ -293,5 +296,15 @@ test('intent changes reuse signer tracking and reset the character stabilizer', 
   assert.equal(h.starts, 1, 'the expensive body/face worker remains running')
   assert.deepEqual(h.commits.map(token => token.text), ['B', '7'])
   assert.equal(h.commits[1].kind, 'number')
+  h.unmount()
+})
+
+test('validation mode measures the shipped library without reading or watching personal recordings', async () => {
+  const h = host({ personal: false }); await h.settle()
+  assert.equal(h.reads.length, 0, 'Personal sample storage must not be read')
+  assert.equal(h.bundledReads, 1)
+  assert.equal(h.subscribed, false, 'Personal library changes must not reload a validation session')
+  h.feed()
+  assert.deepEqual(h.commits.map(token => token.text), ['B'])
   h.unmount()
 })
