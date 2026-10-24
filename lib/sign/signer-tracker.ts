@@ -44,11 +44,12 @@ export async function startSignerTracking(video: HTMLVideoElement, options: {
   const tick = (now: number) => {
     if (stopped || options.signal.aborted || document.hidden) { stop(); return }
     // A slow inference lowers capture cadence; decoded frames are dropped.
-    const interval = samples.length ? Math.max(66, Math.min(200, samples.at(-1)! * 1.15)) : 66
+    const interval = samples.length ? Math.max(45, Math.min(200, samples.at(-1)! * 1.15)) : 66
     if (ready && !pending && video.readyState >= 2 && video.videoWidth && video.currentTime !== lastVideoTime && now-lastSent >= interval) {
       pending = true; lastSent = now; lastVideoTime = video.currentTime
       const captureEpoch = epoch
-      const width = Math.min(960,video.videoWidth), height = Math.round(width*video.videoHeight/video.videoWidth)
+      // The models work on 192-256 px crops; 640 px keeps detail while cutting copy and upload cost.
+      const width = Math.min(640,video.videoWidth), height = Math.round(width*video.videoHeight/video.videoWidth)
       void createImageBitmap(video,{ resizeWidth: width, resizeHeight: height }).then(image => {
         if (stopped || !worker || captureEpoch !== epoch) { image.close(); return }
         timeout = setTimeout(() => { void fallback() }, sequence ? 4000 : 12000)

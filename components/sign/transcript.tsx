@@ -1,13 +1,13 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type Dispatch } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { usePrefersReducedMotion } from '@/lib/sign/use-reduced-motion'
 import { Check, Copy, Delete, Pencil, Space, Sparkles, Square, Trash2, Undo2, Volume2, X } from 'lucide-react'
 import { speakText, speechVoices, type SpeechLanguage } from '@/lib/sign/tts'
 import { protectedTerms, reviewSentence } from '@/lib/sign/sentence'
 import { describeSign, spelledTerms, transcriptSigns, type TranscriptAction, type TranscriptState } from '@/lib/sign/transcript-tokens'
-import type { SignCandidate, SignEvent } from '@/lib/sign/types'
+import type { SignCandidate, SignEvent, TranscriptToken } from '@/lib/sign/types'
 
 const SOURCE_LABELS: Record<SignEvent['source'], string> = {
   'word-model': 'built-in word model', 'personal-words': 'your recordings',
@@ -15,12 +15,11 @@ const SOURCE_LABELS: Record<SignEvent['source'], string> = {
 }
 const commitLabel = (sign: SignEvent) => sign.commit === 'confirmed' ? 'you confirmed' : 'added automatically'
 
-export function Transcript({ active, transcript, dispatch, wordMode = false, confirmationOnly = false, feedback, feedbackLive = false, candidates = [], onAcceptCandidate }: {
+export function Transcript({ active, transcript, dispatch, wordMode = false, feedback, feedbackLive = false, candidates = [], onAcceptCandidate }: {
   active: boolean; transcript: TranscriptState; dispatch: Dispatch<TranscriptAction>
-  wordMode?: boolean; confirmationOnly?: boolean
+  wordMode?: boolean
   feedback?: string; feedbackLive?: boolean; candidates?: SignCandidate[]; onAcceptCandidate?: (label: string) => void
 }) {
-  const reduced = usePrefersReducedMotion()
   const tokens = transcript.tokens
   const raw = tokens.map((t) => t.text).join('')
   const signs = useMemo(() => transcriptSigns(tokens), [tokens])
@@ -40,8 +39,6 @@ export function Transcript({ active, transcript, dispatch, wordMode = false, con
   const requestRef = useRef<AbortController | null>(null)
   const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const latestRaw = useRef(raw)
-  const lineRef = useRef<HTMLDivElement | null>(null)
-  const followLatest = useRef(true)
   latestRaw.current = raw
   // A suggestion belongs to the exact text and language it was made from.
   const visibleCleaned = cleaned?.raw === raw && cleaned.language === language ? cleaned : null
@@ -68,10 +65,6 @@ export function Transcript({ active, transcript, dispatch, wordMode = false, con
   useEffect(() => {
     stop(); requestRef.current?.abort(); requestRef.current = null; setBusy(false); setNotice(''); setCopied(null)
   }, [raw, language, stop])
-  useEffect(() => {
-    const line = lineRef.current
-    if (line && followLatest.current) line.scrollTop = line.scrollHeight
-  }, [raw])
 
   const copy = async (text: string, which: 'transcript' | 'suggestion') => {
     try {
@@ -125,18 +118,11 @@ export function Transcript({ active, transcript, dispatch, wordMode = false, con
   }
 
   return <section className="sign-transcript" aria-labelledby="sign-transcript-title">
-    <div className="sign-transcript-heading"><div><p className="eyebrow">Your words, taking shape</p><h3 id="sign-transcript-title">Live transcript</h3></div>
+    <h3 id="sign-transcript-title" className="sign-sr-only">Live transcript</h3>
+    {(feedback || lastSign) && <div className="sign-transcript-heading">
+      {feedback ? <div className="sign-transcript-feedback" role={feedbackLive ? 'status' : undefined}><span className="dock-live-dot" />{feedback}</div> : <span />}
       {lastSign && <span className="sign-last-sign">Last: <strong>{lastSign.sign.text}</strong> · {lastSign.sign.kind} · {commitLabel(lastSign.sign)}{lastSign.intact ? '' : ' · edited'}</span>}
-      <span className="sign-token-count">{tokens.length} / 1200</span></div>
-    <div ref={lineRef} className="sign-raw-line" aria-label="Raw transcript" tabIndex={0} onScroll={event => {
-      const line = event.currentTarget
-      followLatest.current = line.scrollHeight - line.scrollTop - line.clientHeight < 24
-    }}>
-      <AnimatePresence initial={false}>{tokens.map((token) => <motion.span key={token.id} layout={!reduced} layoutId={reduced ? undefined : `sign-token-${token.id}`} className="sign-letter" data-kind={token.kind ?? 'typed'}
-        initial={{ opacity: 0, scale: reduced ? 1 : .75 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: reduced ? 1 : .7 }} transition={{ type: 'spring', stiffness: 260, damping: 22 }}>{token.text === ' ' ? '\u00a0' : token.text}</motion.span>)}</AnimatePresence>
-      {!tokens.length && <span className="sign-transcript-placeholder">{confirmationOnly ? 'Your confirmed signs will appear here.' : wordMode ? 'Your recognized words will appear here.' : 'Your recognized letters or numbers will appear here.'}</span>}
-    </div>
-    {feedback && <div className="sign-transcript-feedback" role={feedbackLive ? 'status' : undefined}><span className="dock-live-dot" />{feedback}</div>}
+    </div>}
     {wordMode && candidates.length > 0 && onAcceptCandidate && <div className="sign-suggestions" aria-label="Possible sign matches, not added yet"><span>Possible match · not added until you tap it</span>{candidates.map(candidate => <button key={candidate.id ?? candidate.label} type="button" onClick={() => onAcceptCandidate(candidate.id ?? candidate.label)}>{candidate.label}<small>{candidate.kind ?? 'word'}</small></button>)}</div>}
     {/* Committed changes only: never every inference frame or the whole transcript. */}
     <span className="sign-sr-only" aria-live="polite" aria-atomic="true"><span key={transcript.announcement.serial}>{transcript.announcement.text}</span></span>
@@ -148,6 +134,7 @@ export function Transcript({ active, transcript, dispatch, wordMode = false, con
       <button type="button" onClick={() => copy(raw, 'transcript')} disabled={!raw.trim()}>{copied === 'transcript' ? <Check size={13} /> : <Copy size={13} />} {copied === 'transcript' ? 'Copied' : 'Copy'}</button>
       <button type="button" onClick={toggleEditing} aria-expanded={editing}><Pencil size={12} /> Edit text</button>
       <button type="button" className="sign-speak-button" onClick={() => speak(raw, 'transcript')} disabled={!raw.trim() || !speechSupported}>{speaking === 'transcript' ? <Square size={13} /> : <Volume2 size={14} />} {speaking === 'transcript' ? 'Stop' : 'Speak'}</button>
+      <span className="sign-token-count">{tokens.length} / 1200</span>
     </div>
     {editing && <div className="sign-edit-panel">
       <label className="sign-edit-label">Edit raw text <span>Typed text is added by you. Untouched signs keep their details.</span><textarea aria-label="Edit raw transcript" maxLength={1200} value={raw} onChange={(event) => dispatch({ type: 'edit', text: event.target.value.replace(/[^\p{L}\p{M}\p{N} .,!?'-]/gu, ' ') })} /></label>
@@ -180,3 +167,26 @@ export function Transcript({ active, transcript, dispatch, wordMode = false, con
     {notice && <p className="sign-output-notice" role="status">{notice}</p>}
   </section>
 }
+
+/** The recognized words only, captioned over the camera. Follows the newest text
+ * unless the reader has scrolled back to earlier captions. Memoized: the camera stage
+ * re-renders several times a second, and each render would re-measure every letter's layout. */
+export const TranscriptCaption = memo(function TranscriptCaption({ tokens, placeholder }: { tokens: TranscriptToken[]; placeholder: string }) {
+  const reduced = usePrefersReducedMotion()
+  const lineRef = useRef<HTMLDivElement | null>(null)
+  const followLatest = useRef(true)
+  const raw = tokens.map((t) => t.text).join('')
+  const latest = tokens.findLast((token) => token.sign)?.sign?.id
+  useEffect(() => {
+    const line = lineRef.current
+    if (line && followLatest.current) line.scrollTop = line.scrollHeight
+  }, [raw])
+  return <div ref={lineRef} className="sign-raw-line sign-camera-caption" data-empty={!tokens.length} aria-label="Raw transcript" tabIndex={0} onScroll={event => {
+    const line = event.currentTarget
+    followLatest.current = line.scrollHeight - line.scrollTop - line.clientHeight < 24
+  }}>
+    <AnimatePresence initial={false}>{tokens.map((token) => <motion.span key={token.id} layout={!reduced} layoutId={reduced ? undefined : `sign-token-${token.id}`} className="sign-letter" data-kind={token.kind ?? 'typed'} data-latest={!!latest && token.sign?.id === latest}
+      initial={{ opacity: 0, scale: reduced ? 1 : .75 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: reduced ? 1 : .7 }} transition={{ type: 'spring', stiffness: 260, damping: 22 }}>{token.text === ' ' ? '\u00a0' : token.text}</motion.span>)}</AnimatePresence>
+    {!tokens.length && <span className="sign-transcript-placeholder">{placeholder}</span>}
+  </div>
+})
