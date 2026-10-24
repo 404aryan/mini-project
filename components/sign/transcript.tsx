@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type Dispatch } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { usePrefersReducedMotion } from '@/lib/sign/use-reduced-motion'
 import { Check, Copy, Delete, Pencil, Space, Sparkles, Square, Trash2, Undo2, Volume2, X } from 'lucide-react'
@@ -169,8 +169,9 @@ export function Transcript({ active, transcript, dispatch, wordMode = false, fee
 }
 
 /** The recognized words only, captioned over the camera. Follows the newest text
- * unless the reader has scrolled back to earlier captions. */
-export function TranscriptCaption({ tokens, placeholder }: { tokens: TranscriptToken[]; placeholder: string }) {
+ * unless the reader has scrolled back to earlier captions. Memoized: the camera stage
+ * re-renders several times a second, and each render would re-measure every letter's layout. */
+export const TranscriptCaption = memo(function TranscriptCaption({ tokens, placeholder }: { tokens: TranscriptToken[]; placeholder: string }) {
   const reduced = usePrefersReducedMotion()
   const lineRef = useRef<HTMLDivElement | null>(null)
   const followLatest = useRef(true)
@@ -188,4 +189,4 @@ export function TranscriptCaption({ tokens, placeholder }: { tokens: TranscriptT
       initial={{ opacity: 0, scale: reduced ? 1 : .75 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: reduced ? 1 : .7 }} transition={{ type: 'spring', stiffness: 260, damping: 22 }}>{token.text === ' ' ? '\u00a0' : token.text}</motion.span>)}</AnimatePresence>
     {!tokens.length && <span className="sign-transcript-placeholder">{placeholder}</span>}
   </div>
-}
+})

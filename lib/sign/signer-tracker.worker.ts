@@ -5,6 +5,13 @@ type Request = { type: 'init'; origin: string; delegate?: 'GPU' | 'CPU' } | { ty
 const scope = self as unknown as { onmessage: (event: MessageEvent<Request>) => void; postMessage: (message: unknown) => void }
 let hands: GestureRecognizer | null = null, pose: PoseLandmarker | null = null, face: FaceLandmarker | null = null
 const identity = new HandIdentityTracker()
+// Hands run on every frame. Body and face move more slowly and only assist framing and
+// hand identity, so they share the remaining budget: pose every 2nd frame, face every 3rd.
+// A recent result is reused in between; a stale one is dropped.
+const POSE_EVERY = 2, FACE_EVERY = 3, REUSE_MS = 400
+let frameCount = 0
+let lastPose: { result: ReturnType<PoseLandmarker['detectForVideo']>; at: number } | null = null
+let lastFace: { result: ReturnType<FaceLandmarker['detectForVideo']>; at: number } | null = null
 scope.onmessage = async ({ data }) => {
   if (data.type === 'init') {
     try {
@@ -34,8 +41,11 @@ scope.onmessage = async ({ data }) => {
   const { image, timestamp } = data
   try {
     if (!hands) throw new Error('Tracker is not ready')
-    const started = performance.now(), result = hands.recognizeForVideo(image, timestamp)
-    const poseResult = pose?.detectForVideo(image, timestamp), faceResult = face?.detectForVideo(image, timestamp)
+    const started = performance.now(), result = hands.recognizeForVideo(image, timestamp), count = frameCount++
+    const recent = <T>(cached: { result: T; at: number } | null) => cached && timestamp - cached.at <= REUSE_MS ? cached.result : undefined
+    if (pose && (count % POSE_EVERY === 0 || !recent(lastPose))) lastPose = { result: pose.detectForVideo(image, timestamp), at: timestamp }
+    if (face && (count % FACE_EVERY === 1 || !recent(lastFace))) lastFace = { result: face.detectForVideo(image, timestamp), at: timestamp }
+    const poseResult = recent(lastPose), faceResult = recent(lastFace)
     const signer = signerObservation({ hands: result.landmarks, pose: poseResult?.landmarks[0], face: faceResult?.faceLandmarks[0],
       faceBlendshapes: Object.fromEntries((faceResult?.faceBlendshapes[0]?.categories ?? []).map(c => [c.categoryName,c.score])),
       headTransform: faceResult?.facialTransformationMatrixes[0]?.data, timestamp, aspect: image.width/image.height }, identity)
