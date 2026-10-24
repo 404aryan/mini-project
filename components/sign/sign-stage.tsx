@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
+import { useCallback, useEffect, useReducer, useRef, useState, type CSSProperties } from 'react'
 import Link from 'next/link'
 import { AnimatePresence, LayoutGroup, motion, useMotionTemplate, useMotionValue, useSpring } from 'motion/react'
 import { usePrefersReducedMotion } from '@/lib/sign/use-reduced-motion'
@@ -9,7 +9,7 @@ import type { CameraStatus, PortalOrigin } from '@/lib/sign/use-sign-mode'
 import { useSignRecognition } from '@/lib/sign/use-sign-recognition'
 import type { TranscriptToken } from '@/lib/sign/types'
 import { HandOverlay } from './hand-overlay'
-import { Transcript } from './transcript'
+import { Transcript, TranscriptCaption } from './transcript'
 import { MAX_SAMPLE_FILE_BYTES } from '@/lib/sign/sample-store'
 import { emptyTranscript, transcriptReducer } from '@/lib/sign/transcript-tokens'
 import { MAX_WORD_FILE_BYTES } from '@/lib/sign/word-data'
@@ -27,6 +27,8 @@ const messages = {
   paused: ['Take your time. We’re paused.', 'Your camera is off. Resume when you’re ready to bring your hands back into the conversation.'],
   live: ['', ''],
 } satisfies Record<CameraStatus, [string, string]>
+const CAMERA_RATIO_KEY = 'yap-render-camera-ratio-v1'
+const usableRatio = (ratio: number) => Number.isFinite(ratio) && ratio > .3 && ratio < 4
 
 export function SignStage({ active, status, origin, attachVideo, onAccept, onRetry, onPause, onClose, onAvatarPreview }: {
   active: boolean; status: CameraStatus; origin: PortalOrigin
@@ -44,6 +46,8 @@ export function SignStage({ active, status, origin, attachVideo, onAccept, onRet
   const [bodyTracking, setBodyTracking] = useState(true)
   const [mirrored, setMirrored] = useState(true)
   const [showAvatar, setShowAvatar] = useState(false)
+  /** The camera's own width / height. Once known, the frame keeps this shape instead of following the viewport. */
+  const [cameraRatio, setCameraRatio] = useState<number | null>(null)
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const ringRef = useRef<SVGCircleElement | null>(null)
@@ -107,6 +111,23 @@ export function SignStage({ active, status, origin, attachVideo, onAccept, onRet
     }
   }, [active, live, showAvatar, fullscreen.expanded, onAvatarPreview])
   useEffect(() => {
+    // Start from the last camera's shape so the frame does not jump when video arrives.
+    try { const saved = Number(localStorage.getItem(CAMERA_RATIO_KEY)); if (usableRatio(saved)) setCameraRatio(saved) } catch { /* Storage is optional. */ }
+    const video = videoRef.current
+    if (!video) return
+    const measure = () => {
+      if (!video.videoWidth || !video.videoHeight) return
+      const ratio = Math.round(video.videoWidth / video.videoHeight * 1e4) / 1e4
+      if (!usableRatio(ratio)) return
+      setCameraRatio(ratio)
+      try { localStorage.setItem(CAMERA_RATIO_KEY, String(ratio)) } catch { /* Storage is optional. */ }
+    }
+    measure()
+    // `resize` fires when the stream's dimensions change, e.g. a phone rotating.
+    video.addEventListener('loadedmetadata', measure); video.addEventListener('resize', measure)
+    return () => { video.removeEventListener('loadedmetadata', measure); video.removeEventListener('resize', measure) }
+  }, [])
+  useEffect(() => {
     const resize = () => setViewport({ width: innerWidth, height: innerHeight })
     const network = () => setOffline(!navigator.onLine)
     resize(); network()
@@ -158,7 +179,7 @@ export function SignStage({ active, status, origin, attachVideo, onAccept, onRet
       </div>
       <span className="sign-framing-note">Head, elbows and hands in view · {kind === 'auto' ? 'confirm each match' : 'isolated signs'}</span>
     </div>
-    <div className="sign-camera-workspace">
+    <div className={`sign-camera-workspace ${cameraRatio ? 'has-camera-ratio' : ''}`} style={cameraRatio ? { '--sign-camera-ratio': cameraRatio } as CSSProperties : undefined}>
     <motion.div ref={frameRef} className="sign-viewfinder" initial={false}
       animate={{ scale: active && !reduced ? 1 : reduced ? 1 : 1.06, opacity: active ? 1 : 0 }}
       transition={{ type: 'spring', stiffness: 130, damping: 24, delay: active && !reduced ? .14 : 0 }}>
@@ -191,16 +212,18 @@ export function SignStage({ active, status, origin, attachVideo, onAccept, onRet
           {status === 'primer' && <span className="sign-permission-note"><LockKeyhole size={11} /> Just you, your camera, and your browser.</span>}
         </motion.div>}
       </AnimatePresence>
-      {live && <div className="sign-preview-hint" role="status"><span className="dock-live-dot" /><span>{trackingCopy}{bodyTracking && recognition.tracking.mode === 'signer' && snapshot.quality?.length ? <small className="sign-framing-advice">{snapshot.quality.filter(text => recognition.tracking.face || !text.includes('face')).filter(text => recognition.tracking.pose || !/shoulders|elbows/.test(text))[0]}</small> : null}</span></div>}
       <div className={`sign-hold-indicator ${holding ? 'is-holding' : ''}`} aria-hidden="true">
         <svg viewBox="0 0 64 64"><circle className="sign-ring-track" cx="32" cy="32" r="26" /><circle ref={ringRef} className="sign-ring-progress" cx="32" cy="32" r="26" strokeDasharray={2 * Math.PI * 26} strokeDashoffset={2 * Math.PI * 26} /></svg>
         <AnimatePresence>{holding && <motion.span key={snapshot.tokenId} layoutId={reduced || words ? undefined : `sign-token-${snapshot.tokenId}`} className={`sign-candidate ${words ? 'is-word' : ''}`} initial={{ scale: reduced ? 1 : .8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ opacity: 0 }} transition={{ type: 'spring', stiffness: 260, damping: 20 }}>{snapshot.label}</motion.span>}</AnimatePresence>
       </div>
-      <span className="sign-frame-index" aria-hidden="true">01 / YOUR SIDE</span>
+      <div className="sign-camera-bottom">
+        {live && <div className="sign-preview-hint" role="status"><span className="dock-live-dot" /><span>{trackingCopy}{bodyTracking && recognition.tracking.mode === 'signer' && snapshot.quality?.length ? <small className="sign-framing-advice">{snapshot.quality.filter(text => recognition.tracking.face || !text.includes('face')).filter(text => recognition.tracking.pose || !/shoulders|elbows/.test(text))[0]}</small> : null}</span></div>}
+        <TranscriptCaption tokens={transcript.tokens} placeholder={kind === 'auto' ? 'Your confirmed signs will appear here.' : words ? 'Your recognized words will appear here.' : 'Your recognized letters or numbers will appear here.'} />
+      </div>
     </motion.div>
-    <Transcript active={active} transcript={transcript} dispatch={dispatchTranscript} wordMode={words} confirmationOnly={kind === 'auto'}
-      // The camera hint already announces tracking changes; only fullscreen notices are repeated here.
-      feedback={fullscreen.notice || (live ? trackingCopy : dataset.loading ? 'Preparing recognition…' : 'Start your camera above to recognize signs.')} feedbackLive={!!fullscreen.notice}
+    <Transcript active={active} transcript={transcript} dispatch={dispatchTranscript} wordMode={words}
+      // Live tracking hints are shown on the camera itself; here only fullscreen notices and start-up guidance.
+      feedback={fullscreen.notice || (live ? '' : dataset.loading ? 'Preparing recognition…' : 'Start your camera above to recognize signs.')} feedbackLive={!!fullscreen.notice}
       candidates={live && snapshot.phase !== 'committed' ? snapshot.candidates : []}
       onAcceptCandidate={recognition.confirmCandidate} />
     </div>

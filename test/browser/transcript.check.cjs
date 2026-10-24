@@ -73,7 +73,7 @@ const check = (name, ok, detail) => { checks.push(ok); console.log(`${ok ? 'PASS
   check('undo is announced politely', await page.locator('.sign-sr-only[aria-live="polite"]').textContent() === 'Undid clear')
   await page.getByRole('button', { name: 'Undo backspace', exact: true }).click()
   check('undo restores a deleted character', await settled('I NEED 2 TICKET'))
-  check('transcript feedback is not a second live region for tracking hints', await page.locator('.sign-transcript-feedback').getAttribute('role') === null)
+  check('transcript feedback is not a second live region for tracking hints', await page.locator('.sign-transcript-feedback').count() === 0 || await page.locator('.sign-transcript-feedback').getAttribute('role') === null)
 
   await page.getByRole('button', { name: 'Speak', exact: true }).click()
   await page.evaluate(() => { window.__stream = document.querySelector('.sign-camera-video').srcObject; window.__cancels = 0 })
