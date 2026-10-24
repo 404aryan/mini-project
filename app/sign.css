@@ -273,7 +273,10 @@
 .sign-coverage-list > div { display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--border); }
 .sign-coverage-list span { color: var(--ink-soft); }
 .sign-stage.is-expanded, .sign-stage:fullscreen { z-index: 60; padding-top: max(14px, env(safe-area-inset-top)); padding-bottom: max(14px, env(safe-area-inset-bottom)); scroll-padding-bottom: 16px; background: var(--background); }
-.sign-stage.is-expanded .sign-camera-workspace { --sign-camera-max-h: clamp(250px, calc(100svh - 270px), 900px); --sign-workspace-max-w: 1600px; }
+/* Fullscreen is for signing: drop the title header and framing note, keep the mode switcher. */
+.sign-stage.is-expanded .sign-stage-header, .sign-stage.is-expanded .sign-framing-note { display: none; }
+.sign-stage.is-expanded .sign-stage-heading { margin-top: 0; }
+.sign-stage.is-expanded .sign-camera-workspace { --sign-camera-max-h: clamp(250px, calc(100svh - 215px), 900px); --sign-workspace-max-w: 1600px; }
 body:has(.sign-stage.is-expanded) .mode-dock, body:has(.sign-stage.is-expanded) .sign-avatar-pip { visibility: hidden; }
 @media (max-width: 760px) {
   .sign-coverage-list > div { grid-template-columns: 1fr 1fr; }
