@@ -33,6 +33,10 @@ Generated with [Archify](https://github.com/tt-a1i/archify) from this repository
 
 ## Getting Started
 
+New to the codebase? Start with the **[Beginner's Guide](BEGINNER-GUIDE.md)**
+for the folder map, tech stack, Docker explanation, feature workflows, and a
+recommended code-reading order.
+
 ```bash
 npm install
 npm run dev
